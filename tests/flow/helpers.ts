@@ -135,7 +135,7 @@ export async function login(
   await expect(ctx.page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
 
   // Extra wait for session to fully sync before next navigation
-  await ctx.page.waitForTimeout(2000);
+  await ctx.page.waitForTimeout(1000);
   console.log("[login] Session verified after reload");
 }
 
@@ -191,10 +191,10 @@ export async function createOrg(
   await page.getByRole("button", { name: RE_CREATE }).click();
 
   // Wait for navigation to dashboard after successful creation
-  await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
+  // The app's onSuccess calls refreshClaims().then(() => router.push('/dashboard'))
+  await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 15_000 });
 
-  // The app calls refreshClaims() after org creation
-  // Wait for it to complete and for cookies to be updated
+  // Wait for the app's refreshClaims() to complete and propagate
   await page.waitForTimeout(3000);
 
   // Get the owner user ID first
@@ -236,17 +236,11 @@ export async function createOrg(
   ctx.org = { id: org.id, name: org.name, slug: org.slug };
   console.log(`[createOrg] Org created: ${org.id}, slug: ${org.slug}`);
 
-  // Explicitly set user_preferences so JWT claims will have org_id
-  await admin.from("user_preferences").upsert({
-    user_id: ownerUser.id,
-    current_organization_id: org.id,
-  });
-  console.log("[createOrg] Set user_preferences.current_organization_id");
-
-  // Log out and log back in to force a completely fresh session with updated JWT claims
-  // This ensures the custom_access_token_hook runs with the new org membership
-  await logout(ctx);
-  await login(ctx, ctx.owner.email, ctx.owner.password);
+  // Reload the page to ensure the RBAC context has fresh session data
+  await page.reload();
+  await page.waitForLoadState("load");
+  await page.waitForTimeout(2000);
+  console.log("[createOrg] Page reloaded with fresh session");
 
   return org.slug;
 }

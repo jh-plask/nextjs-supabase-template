@@ -101,7 +101,7 @@ export const projectNodes: TestNode[] = [
     id: "projects:owner_perms",
     name: "Owner has all permissions",
     domain: "projects",
-    dependencies: ["org:create"],
+    dependencies: ["projects:create_initial"],
     run: async (ctx) => {
       expect(await canSee(ctx, "newProject")).toBe(true);
       expect(await canSee(ctx, "inviteBtn")).toBe(true);

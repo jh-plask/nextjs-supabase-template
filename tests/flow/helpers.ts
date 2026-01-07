@@ -264,6 +264,35 @@ export async function createOrg(
   await logout(ctx);
   await page.waitForTimeout(1000);
   await login(ctx, ctx.owner.email, ctx.owner.password);
+
+  // Debug: Check JWT claims after login
+  const jwtPayload = await page.evaluate(async () => {
+    // Get the session from localStorage (Supabase stores it there)
+    const storageKey = Object.keys(localStorage).find((k) =>
+      k.includes("supabase.auth.token")
+    );
+    if (!storageKey) return { error: "No auth token in localStorage" };
+
+    try {
+      const data = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      const accessToken =
+        data.access_token || data.currentSession?.access_token;
+      if (!accessToken) return { error: "No access_token found", data };
+
+      // Decode JWT payload
+      const payload = JSON.parse(atob(accessToken.split(".")[1]));
+      return {
+        org_id: payload.org_id,
+        org_role: payload.org_role,
+        orgs: payload.orgs,
+        sub: payload.sub,
+      };
+    } catch (e) {
+      return { error: String(e) };
+    }
+  });
+  console.log(`[createOrg] JWT claims: ${JSON.stringify(jwtPayload)}`);
+
   console.log("[createOrg] Full re-login completed");
 
   return org.slug;

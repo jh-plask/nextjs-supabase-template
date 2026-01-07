@@ -176,14 +176,12 @@ export async function createOrg(
   // Wait for DB transaction to fully commit before refreshing session
   await page.waitForTimeout(1000);
 
-  // Force hard reload to ensure fresh cookies with updated JWT claims
+  // Force multiple reloads to ensure cookies are properly refreshed via middleware
+  // The middleware calls refreshSession() for dashboard routes
   await page.reload();
   await page.waitForLoadState("load");
-
-  // Navigate away and back to force a clean session refresh via middleware
-  await page.goto(`${baseUrl}/auth`);
-  await page.waitForLoadState("load");
-  await page.goto(`${baseUrl}/dashboard`);
+  await page.waitForTimeout(500);
+  await page.reload();
   await page.waitForLoadState("load");
 
   return name.toLowerCase().replace(/\s+/g, "-");

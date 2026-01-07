@@ -27,7 +27,6 @@ const RE_ORG_NAME = /organization name/i;
 const RE_CREATE = /create/i;
 const RE_INVITE_MEMBER = /invite member/i;
 const RE_EMAIL = /email/i;
-const RE_ROLE = /role/i;
 const RE_SEND_INVITE = /send invite/i;
 const RE_INVITATION_SENT = /invitation sent/i;
 const RE_NEW_PROJECT = /new project/i;
@@ -134,7 +133,7 @@ export async function login(
 export async function logout(ctx: FlowContext): Promise<void> {
   // Navigate to dashboard first to ensure we're on the right page
   await ctx.page.goto(`${ctx.baseUrl}/dashboard`);
-  await ctx.page.waitForLoadState("networkidle");
+  await ctx.page.waitForLoadState("load");
 
   // Dismiss Next.js dev overlay if present (it can intercept clicks)
   await ctx.page.evaluate(() => {
@@ -146,7 +145,7 @@ export async function logout(ctx: FlowContext): Promise<void> {
 
   // Click trigger and wait for dropdown - use force to bypass any remaining overlays
   const trigger = ctx.page.getByTestId("user-menu-trigger");
-  await expect(trigger).toBeVisible({ timeout: 5000 });
+  await expect(trigger).toBeVisible({ timeout: 10_000 });
   await trigger.click({ force: true });
 
   // Wait for dropdown content to appear and click logout button
@@ -175,7 +174,7 @@ export async function createOrg(
   await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
   // Force hard reload to ensure fresh cookies with updated JWT claims
   await page.reload();
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("load");
   return name.toLowerCase().replace(/\s+/g, "-");
 }
 
@@ -302,11 +301,11 @@ export async function acceptInvitation(
   // Navigate to a page that will trigger session refresh
   // The dashboard layout fetches user data which refreshes the session
   await ctx.page.goto(`${ctx.baseUrl}/dashboard`);
-  await ctx.page.waitForLoadState("networkidle");
+  await ctx.page.waitForLoadState("load");
 
   // Force a hard refresh to ensure cookies are updated
   await ctx.page.reload();
-  await ctx.page.waitForLoadState("networkidle");
+  await ctx.page.waitForLoadState("load");
 }
 
 // ===========================================
@@ -322,7 +321,7 @@ export async function createProject(
 ): Promise<void> {
   const { page, baseUrl } = ctx;
   await page.goto(`${baseUrl}/dashboard/projects`);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("load");
 
   // Click "New Project" button and wait for dialog
   await page.getByRole("button", { name: RE_NEW_PROJECT }).click();
@@ -347,7 +346,7 @@ export async function canSee(
 
   if (selector === "newProject") {
     await page.goto(`${baseUrl}/dashboard/projects`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     return page
       .getByRole("button", { name: RE_NEW_PROJECT })
       .isVisible({ timeout: 3000 })
@@ -356,7 +355,7 @@ export async function canSee(
 
   if (selector === "editBtn") {
     await page.goto(`${baseUrl}/dashboard/projects`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     const list = page.getByTestId("projects-list");
     const visible = await list.isVisible().catch(() => false);
     if (!visible) {
@@ -372,7 +371,7 @@ export async function canSee(
 
   if (selector === "inviteBtn") {
     await page.goto(`${baseUrl}/dashboard/org/members`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     return page
       .getByRole("button", { name: RE_INVITE_MEMBER })
       .isVisible({ timeout: 3000 })

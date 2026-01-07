@@ -236,11 +236,35 @@ export async function createOrg(
   ctx.org = { id: org.id, name: org.name, slug: org.slug };
   console.log(`[createOrg] Org created: ${org.id}, slug: ${org.slug}`);
 
-  // Reload the page to ensure the RBAC context has fresh session data
-  await page.reload();
-  await page.waitForLoadState("load");
-  await page.waitForTimeout(2000);
-  console.log("[createOrg] Page reloaded with fresh session");
+  // Explicitly ensure user_preferences is set (in case RPC didn't do it)
+  await admin.from("user_preferences").upsert({
+    user_id: ownerUser.id,
+    current_organization_id: org.id,
+  });
+
+  // Verify the data is correct before re-login
+  const { data: pref } = await admin
+    .from("user_preferences")
+    .select("current_organization_id")
+    .eq("user_id", ownerUser.id)
+    .single();
+  console.log(
+    `[createOrg] user_preferences.current_org_id: ${pref?.current_organization_id}`
+  );
+
+  const { data: memberCheck } = await admin
+    .from("organization_members")
+    .select("role")
+    .eq("user_id", ownerUser.id)
+    .eq("organization_id", org.id)
+    .single();
+  console.log(`[createOrg] organization_members.role: ${memberCheck?.role}`);
+
+  // Do a full logout/login cycle to get a new JWT with fresh claims
+  await logout(ctx);
+  await page.waitForTimeout(1000);
+  await login(ctx, ctx.owner.email, ctx.owner.password);
+  console.log("[createOrg] Full re-login completed");
 
   return org.slug;
 }

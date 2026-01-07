@@ -20,7 +20,13 @@ export function RequirePermission({
   fallback = null,
   children,
 }: RequirePermissionProps) {
+  const { isLoading } = useOrgContext();
   const allowed = usePermission(permission);
+
+  // Wait for RBAC context to load before deciding
+  if (isLoading) {
+    return null;
+  }
 
   if (!allowed) {
     return fallback;
@@ -44,7 +50,12 @@ export function RequireRole({
   fallback = null,
   children,
 }: RequireRoleProps) {
-  const { orgRole } = useOrgContext();
+  const { orgRole, isLoading } = useOrgContext();
+
+  // Wait for RBAC context to load before deciding
+  if (isLoading) {
+    return null;
+  }
 
   if (!(orgRole && roles.includes(orgRole))) {
     return fallback;

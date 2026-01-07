@@ -186,28 +186,6 @@ export const permissionNodes: TestNode[] = INVITE_ROLES.map(
       await login(ctx, userCreds.email, userCreds.password);
       console.log(`[${role}] Logged in successfully`);
 
-      // Debug: Check JWT claims after login
-      const cookies = await ctx.page.context().cookies();
-      const authCookie = cookies.find((c) => c.name.includes("-auth-token"));
-      if (authCookie) {
-        try {
-          let cookieValue = decodeURIComponent(authCookie.value);
-          if (cookieValue.startsWith("base64-")) {
-            cookieValue = atob(cookieValue.slice(7));
-          }
-          const authData = JSON.parse(cookieValue);
-          const accessToken = authData.access_token;
-          if (accessToken?.includes(".")) {
-            const payload = JSON.parse(atob(accessToken.split(".")[1]));
-            console.log(
-              `[${role}] JWT claims: org_id=${payload.org_id}, org_role=${payload.org_role}`
-            );
-          }
-        } catch (e) {
-          console.log(`[${role}] Failed to parse JWT: ${e}`);
-        }
-      }
-
       // Check permissions per ROLE_PERMISSIONS matrix
       const canCreate =
         ROLE_PERMISSIONS[role]?.includes("projects.create") ?? false;

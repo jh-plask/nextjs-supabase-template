@@ -173,16 +173,13 @@ export async function createOrg(
   await page.getByRole("button", { name: RE_CREATE }).click();
   await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
 
-  // Wait for DB transaction to fully commit before refreshing session
+  // Wait for DB transaction to fully commit
   await page.waitForTimeout(1000);
 
-  // Force multiple reloads to ensure cookies are properly refreshed via middleware
-  // The middleware calls refreshSession() for dashboard routes
-  await page.reload();
-  await page.waitForLoadState("load");
-  await page.waitForTimeout(500);
-  await page.reload();
-  await page.waitForLoadState("load");
+  // Logout and login to get fresh JWT with org claims
+  // This is more reliable than relying on session refresh
+  await logout(ctx);
+  await login(ctx, ctx.owner.email, ctx.owner.password);
 
   return name.toLowerCase().replace(/\s+/g, "-");
 }

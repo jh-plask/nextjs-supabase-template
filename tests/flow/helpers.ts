@@ -125,12 +125,23 @@ export async function login(
   // Wait for navigation to complete (with shorter timeout)
   await expect(ctx.page).toHaveURL(RE_DASHBOARD, { timeout: 15_000 });
   console.log(`[login] Navigation complete, URL: ${ctx.page.url()}`);
+
+  // Wait for session cookies to be fully established
+  await ctx.page.waitForTimeout(2000);
+
+  // Reload and verify we stay on dashboard (session is valid)
+  await ctx.page.reload();
+  await ctx.page.waitForLoadState("load");
+  await expect(ctx.page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
+  console.log("[login] Session verified after reload");
 }
 
 /**
  * Logout via user menu.
  */
 export async function logout(ctx: FlowContext): Promise<void> {
+  console.log("[logout] Starting logout...");
+
   // Navigate to dashboard first to ensure we're on the right page
   await ctx.page.goto(`${ctx.baseUrl}/dashboard`);
   await ctx.page.waitForLoadState("load");
@@ -154,6 +165,10 @@ export async function logout(ctx: FlowContext): Promise<void> {
   await expect(logoutBtn).toBeVisible({ timeout: 5000 });
   await logoutBtn.click({ force: true });
   await expect(ctx.page).toHaveURL(RE_AUTH, { timeout: 10_000 });
+
+  // Wait for session to be fully cleared
+  await ctx.page.waitForTimeout(1000);
+  console.log("[logout] Logout complete");
 }
 
 // ===========================================

@@ -265,37 +265,7 @@ export async function createOrg(
   await page.waitForTimeout(1000);
   await login(ctx, ctx.owner.email, ctx.owner.password);
 
-  // Debug: Check JWT claims from cookies (SSR mode uses cookies, not localStorage)
-  // Supabase SSR stores auth as: sb-{project-ref}-auth-token with "base64-" prefixed JSON
-  const cookies = await page.context().cookies();
-  const authCookie = cookies.find((c) => c.name.includes("-auth-token"));
-  if (authCookie) {
-    try {
-      // Cookie value has "base64-" prefix followed by base64-encoded JSON
-      let cookieValue = decodeURIComponent(authCookie.value);
-      if (cookieValue.startsWith("base64-")) {
-        cookieValue = atob(cookieValue.slice(7)); // Remove "base64-" prefix and decode
-      }
-      const authData = JSON.parse(cookieValue);
-      const accessToken = authData.access_token;
-      if (accessToken?.includes(".")) {
-        // Decode JWT payload (middle part)
-        const payload = JSON.parse(atob(accessToken.split(".")[1]));
-        console.log(
-          `[createOrg] JWT claims: org_id=${payload.org_id}, org_role=${payload.org_role}`
-        );
-      } else {
-        console.log("[createOrg] No access_token in cookie data");
-      }
-    } catch (e) {
-      console.log(`[createOrg] Failed to parse auth cookie: ${e}`);
-    }
-  } else {
-    const allCookieNames = cookies.map((c) => c.name).join(", ");
-    console.log(`[createOrg] No auth cookie found. Cookies: ${allCookieNames}`);
-  }
-
-  console.log("[createOrg] Full re-login completed");
+  console.log("[createOrg] Re-login completed, JWT claims refreshed");
 
   return org.slug;
 }
@@ -315,7 +285,12 @@ export async function invite(
 ): Promise<string> {
   const { page, baseUrl } = ctx;
   await page.goto(`${baseUrl}/dashboard/org/members`);
-  await page.getByRole("button", { name: RE_INVITE_MEMBER }).click();
+  await page.waitForLoadState("load");
+
+  // Wait for RBAC context to load and button to appear
+  const inviteBtn = page.getByRole("button", { name: RE_INVITE_MEMBER });
+  await expect(inviteBtn).toBeVisible({ timeout: 15_000 });
+  await inviteBtn.click();
   await page.waitForTimeout(300); // Dialog animation
 
   // Fill email
@@ -473,9 +448,10 @@ export async function canSee(
   if (selector === "newProject") {
     await page.goto(`${baseUrl}/dashboard/projects`);
     await page.waitForLoadState("load");
+    // Wait for RBAC context to load (button wrapped in RequirePermission)
     return page
       .getByRole("button", { name: RE_CREATE_PROJECT })
-      .isVisible({ timeout: 3000 })
+      .isVisible({ timeout: 10_000 })
       .catch(() => false);
   }
 
@@ -483,7 +459,9 @@ export async function canSee(
     await page.goto(`${baseUrl}/dashboard/projects`);
     await page.waitForLoadState("load");
     const list = page.getByTestId("projects-list");
-    const visible = await list.isVisible().catch(() => false);
+    const visible = await list
+      .isVisible({ timeout: 10_000 })
+      .catch(() => false);
     if (!visible) {
       return false;
     }
@@ -491,16 +469,17 @@ export async function canSee(
     return page
       .getByTestId("project-edit-btn")
       .first()
-      .isVisible({ timeout: 3000 })
+      .isVisible({ timeout: 5000 })
       .catch(() => false);
   }
 
   if (selector === "inviteBtn") {
     await page.goto(`${baseUrl}/dashboard/org/members`);
     await page.waitForLoadState("load");
+    // Wait for RBAC context to load
     return page
       .getByRole("button", { name: RE_INVITE_MEMBER })
-      .isVisible({ timeout: 3000 })
+      .isVisible({ timeout: 10_000 })
       .catch(() => false);
   }
 

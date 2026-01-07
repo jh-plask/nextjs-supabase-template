@@ -266,14 +266,17 @@ export async function createOrg(
   await login(ctx, ctx.owner.email, ctx.owner.password);
 
   // Debug: Check JWT claims from cookies (SSR mode uses cookies, not localStorage)
-  // Supabase stores auth as: sb-{project-ref}-auth-token (JSON with access_token inside)
+  // Supabase SSR stores auth as: sb-{project-ref}-auth-token with "base64-" prefixed JSON
   const cookies = await page.context().cookies();
   const authCookie = cookies.find((c) => c.name.includes("-auth-token"));
   if (authCookie) {
     try {
-      // Cookie value is URL-encoded JSON containing access_token
-      const decoded = decodeURIComponent(authCookie.value);
-      const authData = JSON.parse(decoded);
+      // Cookie value has "base64-" prefix followed by base64-encoded JSON
+      let cookieValue = decodeURIComponent(authCookie.value);
+      if (cookieValue.startsWith("base64-")) {
+        cookieValue = atob(cookieValue.slice(7)); // Remove "base64-" prefix and decode
+      }
+      const authData = JSON.parse(cookieValue);
       const accessToken = authData.access_token;
       if (accessToken?.includes(".")) {
         // Decode JWT payload (middle part)

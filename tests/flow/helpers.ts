@@ -133,6 +133,9 @@ export async function login(
   await ctx.page.reload();
   await ctx.page.waitForLoadState("load");
   await expect(ctx.page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
+
+  // Extra wait for session to fully sync before next navigation
+  await ctx.page.waitForTimeout(2000);
   console.log("[login] Session verified after reload");
 }
 

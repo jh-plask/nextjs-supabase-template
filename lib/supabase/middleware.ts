@@ -33,16 +33,10 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
   const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
 
-  // For dashboard routes, refresh session to get latest JWT claims (org_id, org_role)
-  // For other routes, just validate with getUser() for performance
-  let user = null;
-  if (isProtectedRoute) {
-    const { data } = await supabase.auth.refreshSession();
-    user = data.session?.user ?? null;
-  } else {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
-  }
+  // Use getUser() for auth checks - more reliable than refreshSession() for middleware
+  // JWT claims are refreshed on login and when explicitly needed in page/layout code
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
 
   // Redirect unauthenticated users from protected routes
   if (!user && isProtectedRoute) {

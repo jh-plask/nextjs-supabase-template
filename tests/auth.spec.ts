@@ -4,6 +4,7 @@ import { authTestPlan, type OperationTestPlan } from "./plans/auth";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 const AUTH_LOGIN_URL_PATTERN = /\/auth\?op=login/;
+const DASHBOARD_URL_PATTERN = /\/dashboard/;
 
 async function fillAuthForm(
   page: Page,
@@ -97,6 +98,20 @@ test.describe("Auth Flow", () => {
     test("dashboard redirects to login", async ({ page }) => {
       await page.goto(`${BASE_URL}/dashboard`);
       await expect(page).toHaveURL(AUTH_LOGIN_URL_PATTERN);
+    });
+  });
+
+  test.describe("Logout", () => {
+    test("logout redirects to login page", async ({ page }) => {
+      // First login
+      const loginPlan = authTestPlan.login;
+      await fillAuthForm(page, "login", loginPlan.valid);
+      await page.getByTestId("auth-submit-login").click();
+      await expect(page).toHaveURL(DASHBOARD_URL_PATTERN, { timeout: 10_000 });
+
+      // Then logout
+      await page.getByTestId("auth-logout-button").click();
+      await expect(page).toHaveURL(AUTH_LOGIN_URL_PATTERN, { timeout: 10_000 });
     });
   });
 });

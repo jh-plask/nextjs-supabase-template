@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { orgFields, orgOperationNames } from "./config";
 
 // ============================================
 // Organization Schema
@@ -6,7 +7,7 @@ import { z } from "zod";
 
 export const OrgSchema = z.object({
   operation: z
-    .enum(["create", "update", "switch", "delete"], {
+    .enum(orgOperationNames, {
       message: "Please select a valid operation",
     })
     .default("create"),
@@ -14,27 +15,9 @@ export const OrgSchema = z.object({
   // Organization ID (required for update, switch, delete)
   orgId: z.string().uuid({ message: "Invalid organization ID" }).optional(),
 
-  // Organization name (required for create, update)
-  name: z
-    .string()
-    .min(2, { message: "Name must be at least 2 characters" })
-    .max(50, { message: "Name must be at most 50 characters" })
-    .optional(),
-
-  // Organization slug (optional, auto-generated if not provided)
-  slug: z
-    .string()
-    .transform((val) => (val === "" ? undefined : val))
-    .pipe(
-      z
-        .string()
-        .min(2, { message: "Slug must be at least 2 characters" })
-        .max(50, { message: "Slug must be at most 50 characters" })
-        .regex(/^[a-z0-9-]+$/, {
-          message: "Slug must be lowercase letters, numbers, and hyphens only",
-        })
-        .optional()
-    ),
+  // Fields from unified config
+  name: orgFields.name.schema,
+  slug: orgFields.slug.schema,
 
   // Logo URL (optional)
   logoUrl: z

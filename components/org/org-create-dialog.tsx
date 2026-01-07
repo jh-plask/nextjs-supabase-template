@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { processOrg } from "@/actions/org";
-import { orgFieldConfigs, orgFormConfigs } from "@/actions/org/form-config";
+import { orgFieldConfigs, orgFormConfigs } from "@/actions/org/config";
 import { OrgSchema } from "@/actions/org/schema";
 import { ConfigDrivenDialog } from "@/components/ui/config-driven-dialog";
 import { useOrgContext } from "@/lib/rbac";

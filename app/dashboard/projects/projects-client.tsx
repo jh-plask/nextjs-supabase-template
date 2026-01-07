@@ -1,13 +1,13 @@
 "use client";
 
-import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { processProject } from "@/actions/projects";
 import {
   projectFieldConfigs,
   projectFormConfigs,
-} from "@/actions/projects/form-config";
+} from "@/actions/projects/config";
 import { ProjectSchema } from "@/actions/projects/schema";
+import { AddIcon, DeleteIcon, EditIcon, Icon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfigDrivenDialog } from "@/components/ui/config-driven-dialog";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
@@ -39,7 +39,7 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
             <DialogTrigger
               render={
                 <Button>
-                  <Plus className="size-4" />
+                  <Icon icon={AddIcon} />
                   New
                 </Button>
               }
@@ -56,7 +56,7 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
           <p className="mb-4 text-muted-foreground">No projects yet</p>
           <RequirePermission permission="projects.create">
             <Button onClick={() => setCreateOpen(true)} variant="outline">
-              <Plus className="mr-2 size-4" />
+              <Icon className="mr-2" icon={AddIcon} />
               Create your first project
             </Button>
           </RequirePermission>
@@ -88,7 +88,7 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
                     size="icon-sm"
                     variant="ghost"
                   >
-                    <Pencil className="size-4" />
+                    <Icon icon={EditIcon} />
                   </Button>
                 </RequirePermission>
                 <RequirePermission permission="projects.delete">
@@ -98,7 +98,7 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
                     size="icon-sm"
                     variant="ghost"
                   >
-                    <Trash2 className="size-4" />
+                    <Icon icon={DeleteIcon} />
                   </Button>
                 </RequirePermission>
               </div>

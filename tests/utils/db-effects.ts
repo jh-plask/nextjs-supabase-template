@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { DbEffect } from "../plans/auth";
+import type { DbEffect } from "@/lib/test-types";
 
 /**
  * Verify database effects after an action.

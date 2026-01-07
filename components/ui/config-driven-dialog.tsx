@@ -1,16 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useActionState, useCallback, useEffect, useId, useRef } from "react";
 import type { z } from "zod";
-import { ConfigDrivenForm } from "@/components/ui/config-driven-form";
+import { Button } from "@/components/ui/button";
+import { ConfigDrivenFormBody } from "@/components/ui/config-driven-form";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FieldGroup } from "@/components/ui/field";
 import type { FieldConfig, FormUIConfig } from "@/lib/form-config";
 import type { ActionState } from "@/lib/safe-action";
 import { getZodDefaults } from "@/lib/safe-action";
@@ -76,22 +80,33 @@ export function ConfigDrivenDialog<TFieldName extends string>({
   refreshOnSuccess = true,
 }: ConfigDrivenDialogProps<TFieldName>) {
   const router = useRouter();
+  const generatedId = useId();
+  const formId = `dialog-form-${generatedId.replace(/:/g, "")}`;
   const initialState = getZodDefaults(schema);
+  const [state, formAction, isPending] = useActionState(action, initialState);
+  const prevStatusRef = useRef(state.status);
 
-  const handleStateChange = useCallback(
-    // biome-ignore lint/suspicious/noExplicitAny: Action state is generic
-    async (state: ActionState<any>) => {
-      if (state.status === "success") {
+  // Handle success state changes
+  useEffect(() => {
+    if (prevStatusRef.current !== state.status && state.status === "success") {
+      const handleSuccess = async () => {
         await onSuccess?.();
         onOpenChange(false);
-        // Trigger client-side refresh after dialog closes
-        // Server action should use revalidatePath for cache invalidation
         if (refreshOnSuccess) {
           router.refresh();
         }
-      }
+      };
+      handleSuccess();
+    }
+    prevStatusRef.current = state.status;
+  }, [state.status, onSuccess, onOpenChange, refreshOnSuccess, router]);
+
+  // Reset form state when dialog closes
+  const handleOpenChange = useCallback(
+    (newOpen: boolean) => {
+      onOpenChange(newOpen);
     },
-    [router, onOpenChange, onSuccess, refreshOnSuccess]
+    [onOpenChange]
   );
 
   // Generate test ID function if prefix provided
@@ -101,30 +116,55 @@ export function ConfigDrivenDialog<TFieldName extends string>({
 
   const submitTestId = testIdPrefix ? `${testIdPrefix}-submit` : undefined;
 
+  // Check for global errors (non-field-specific)
+  const hasGlobalError =
+    state.status === "error" && !Object.keys(state.errors ?? {}).length;
+
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent>
+    <Dialog onOpenChange={handleOpenChange} open={open}>
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <ConfigDrivenForm
-          action={action}
-          className="flex flex-col gap-4"
-          fieldConfigs={fieldConfigs}
-          getFieldTestId={getFieldTestId}
-          hiddenFields={hiddenFields}
-          initialState={initialState}
-          initialValues={initialValues}
-          onStateChange={handleStateChange}
-          submitTestId={submitTestId}
-          submitVariant={submitVariant}
-          uiConfig={{
-            ...uiConfig,
-            label: "", // Hide legend since dialog has title
-            description: undefined,
-          }}
-        />
+
+        {/* Global error message */}
+        {hasGlobalError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-red-600 text-sm">
+            {state.message}
+          </div>
+        )}
+
+        {/* Form with fields only (submit is in footer) */}
+        <form action={formAction} className="flex flex-col gap-4" id={formId}>
+          <FieldGroup>
+            <ConfigDrivenFormBody
+              fieldConfigs={fieldConfigs}
+              formId={formId}
+              getFieldTestId={getFieldTestId}
+              hiddenFields={hiddenFields}
+              initialValues={initialValues}
+              state={state}
+              uiConfig={uiConfig}
+            />
+          </FieldGroup>
+        </form>
+
+        {/* Footer with Cancel and Submit buttons */}
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" />}>
+            Cancel
+          </DialogClose>
+          <Button
+            data-testid={submitTestId}
+            disabled={isPending}
+            form={formId}
+            type="submit"
+            variant={submitVariant}
+          >
+            {isPending ? uiConfig.submit.pending : uiConfig.submit.label}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

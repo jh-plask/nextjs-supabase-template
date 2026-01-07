@@ -42,7 +42,7 @@ export default async function DashboardLayout({
         <SidebarInset>
           <header className="flex h-12 shrink-0 items-center gap-2 px-3">
             <SidebarTrigger />
-            <Separator className="my-auto h-4" orientation="vertical" />
+            <Separator className="my-auto mr-1 h-4" orientation="vertical" />
             <PageHeader />
           </header>
           <main className="flex-1 p-4">{children}</main>

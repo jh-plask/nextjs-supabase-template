@@ -1,6 +1,5 @@
 "use client";
 
-import { Building2, ChevronsUpDown, Plus, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   useActionState,
@@ -12,6 +11,13 @@ import {
 } from "react";
 import { processOrg } from "@/actions/org";
 import { OrgSchema } from "@/actions/org/schema";
+import {
+  AddIcon,
+  ChevronsUpDownIcon,
+  Icon,
+  OrgIcon,
+  SettingsIcon,
+} from "@/components/icons";
 import { OrgCreateDialog } from "@/components/org/org-create-dialog";
 import {
   DropdownMenu,
@@ -101,13 +107,13 @@ export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
               {isLoading ? (
                 <Spinner className="size-4" />
               ) : (
-                <Building2 className="size-4" />
+                <Icon icon={OrgIcon} />
               )}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{displayName}</span>
             </div>
-            <ChevronsUpDown className="ml-auto" />
+            <Icon className="ml-auto" icon={ChevronsUpDownIcon} />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="start"
@@ -140,7 +146,7 @@ export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
                   }}
                 >
                   <div className="flex size-6 items-center justify-center rounded-sm border">
-                    <Building2 className="size-4 shrink-0" />
+                    <Icon icon={OrgIcon} />
                   </div>
                   <span className="truncate">{org.name}</span>
                   {org.id === orgId && (
@@ -161,7 +167,7 @@ export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
                 setCreateDialogOpen(true);
               }}
             >
-              <Plus className="mr-2 size-4" />
+              <Icon className="mr-2" icon={AddIcon} />
               New Organization
             </DropdownMenuItem>
 
@@ -173,7 +179,7 @@ export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
                   router.push("/dashboard/org/settings");
                 }}
               >
-                <Settings className="mr-2 size-4" />
+                <Icon className="mr-2" icon={SettingsIcon} />
                 Settings
               </DropdownMenuItem>
             )}

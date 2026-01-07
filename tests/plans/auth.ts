@@ -1,4 +1,11 @@
+/**
+ * Auth Test Plans
+ *
+ * Authentication operations test data with type-safe field references.
+ */
+
 import { authUIConfig, type Operation } from "@/actions/auth/config";
+import type { DbEffect, OperationTestPlan } from "@/lib/test-types";
 
 // Test user credentials
 // In CI: use admin-created user (e2e-test@playwright.local)
@@ -7,30 +14,21 @@ const TEST_USER = process.env.CI
   ? { email: "e2e-test@playwright.local", password: "E2ETestPassword123!" }
   : { email: "ont323@gmail.com", password: "kkang63920" };
 
-// --- DB Effect Types ---
-export interface DbEffect {
-  table: string;
-  op: "insert" | "update" | "delete";
-  match?: Record<string, unknown>;
-  expectCount?: number;
-}
+// Re-export types for backwards compatibility
+export type { DbEffect, OperationTestPlan };
 
-// --- Test Plan Interface ---
-export interface OperationTestPlan {
-  valid: Record<string, string>;
-  invalid?: Record<string, string>;
-  successMessage?: RegExp;
-  errorMessage?: RegExp;
-  redirectTo?: string;
-  db: DbEffect[];
-}
+// Auth field names
+type AuthFieldName = "email" | "password" | "confirmPassword";
 
 // --- Auth Test Plan ---
-export const authTestPlan: Record<Operation, OperationTestPlan> = {
+export const authTestPlan: Record<
+  Operation,
+  OperationTestPlan<AuthFieldName>
+> = {
   login: {
     valid: { email: TEST_USER.email, password: TEST_USER.password },
     invalid: { email: "test@test.com", password: "short" },
-    errorMessage: /Password must be at least 8 characters/i,
+    error: /Password must be at least 8 characters/i,
     redirectTo: "/dashboard",
     db: [],
   },
@@ -45,8 +43,8 @@ export const authTestPlan: Record<Operation, OperationTestPlan> = {
       password: "NewPassword123",
       confirmPassword: "Different",
     },
-    successMessage: /check your email|confirm/i,
-    errorMessage: /passwords do not match/i,
+    success: /check your email|confirm/i,
+    error: /passwords do not match/i,
     db: [
       {
         table: "auth.users",
@@ -59,7 +57,7 @@ export const authTestPlan: Record<Operation, OperationTestPlan> = {
     valid: { email: "magic@example.com" },
     invalid: { email: "" },
     // Note: successMessage test requires Supabase to accept the email domain
-    errorMessage: /Email is required/i,
+    error: /Email is required/i,
     db: [],
   },
   logout: {

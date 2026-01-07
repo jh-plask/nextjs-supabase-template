@@ -1,8 +1,37 @@
-import { FolderKanban, Home, Settings, Users } from "lucide-react";
+import {
+  HomeIcon,
+  HomeSolidIcon,
+  MembersIcon,
+  MembersSolidIcon,
+  ProjectsIcon,
+  ProjectsSolidIcon,
+  SettingsIcon,
+  SettingsSolidIcon,
+} from "@/components/icons";
 
 export const NAV_MAIN = [
-  { title: "Home", url: "/dashboard", icon: Home },
-  { title: "Projects", url: "/dashboard/projects", icon: FolderKanban },
-  { title: "Members", url: "/dashboard/org/members", icon: Users },
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
+  {
+    title: "Home",
+    url: "/dashboard",
+    icon: HomeIcon,
+    solidIcon: HomeSolidIcon,
+  },
+  {
+    title: "Projects",
+    url: "/dashboard/projects",
+    icon: ProjectsIcon,
+    solidIcon: ProjectsSolidIcon,
+  },
+  {
+    title: "Members",
+    url: "/dashboard/org/members",
+    icon: MembersIcon,
+    solidIcon: MembersSolidIcon,
+  },
+  {
+    title: "Settings",
+    url: "/dashboard/settings",
+    icon: SettingsIcon,
+    solidIcon: SettingsSolidIcon,
+  },
 ] as const;

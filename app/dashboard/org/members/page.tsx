@@ -1,11 +1,11 @@
 "use client";
 
-import { Plus, Trash2, UserMinus } from "lucide-react";
 import { useActionState, useCallback, useEffect, useState } from "react";
 import { processInvitation } from "@/actions/invitations";
 import { InvitationSchema } from "@/actions/invitations/schema";
 import { processMember } from "@/actions/members";
 import { MemberSchema } from "@/actions/members/schema";
+import { AddIcon, DeleteIcon, Icon, UserRemoveIcon } from "@/components/icons";
 import { InviteMemberDialog } from "@/components/org/invite-member-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,7 +130,7 @@ function MembersContent() {
       <SetPageActions>
         <RequirePermission permission="members.invite">
           <Button onClick={() => setInviteDialogOpen(true)}>
-            <Plus className="size-4" />
+            <Icon icon={AddIcon} />
             Invite
           </Button>
         </RequirePermission>
@@ -164,7 +164,7 @@ function MembersContent() {
                     <input name="operation" type="hidden" value="revoke" />
                     <input name="invitationId" type="hidden" value={inv.id} />
                     <Button size="sm" type="submit" variant="ghost">
-                      <Trash2 className="h-4 w-4" />
+                      <Icon icon={DeleteIcon} />
                     </Button>
                   </form>
                 </RequirePermission>
@@ -233,7 +233,7 @@ function MembersContent() {
                         type="submit"
                         variant="ghost"
                       >
-                        <UserMinus className="h-4 w-4" />
+                        <Icon icon={UserRemoveIcon} />
                       </Button>
                     </form>
                   )}

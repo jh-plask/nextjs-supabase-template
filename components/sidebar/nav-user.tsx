@@ -1,7 +1,13 @@
 "use client";
 
-import { ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
+import {
+  ChevronsUpDownIcon,
+  Icon,
+  LogoutIcon,
+  ProfileIcon,
+  SettingsIcon,
+} from "@/components/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +51,7 @@ export function NavUser({ user }: NavUserProps) {
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.email}</span>
             </div>
-            <ChevronsUpDown className="ml-auto size-4" />
+            <Icon className="ml-auto" icon={ChevronsUpDownIcon} />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
@@ -63,11 +69,11 @@ export function NavUser({ user }: NavUserProps) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <User className="mr-2 size-4" />
+                <Icon className="mr-2" icon={ProfileIcon} />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Settings className="mr-2 size-4" />
+                <Icon className="mr-2" icon={SettingsIcon} />
                 Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -75,7 +81,7 @@ export function NavUser({ user }: NavUserProps) {
             <form action={logoutAction}>
               <button className="w-full" type="submit">
                 <DropdownMenuItem>
-                  <LogOut className="mr-2 size-4" />
+                  <Icon className="mr-2" icon={LogoutIcon} />
                   Log out
                 </DropdownMenuItem>
               </button>

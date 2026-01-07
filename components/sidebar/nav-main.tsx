@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NavIcon } from "@/components/icons";
 import {
   SidebarGroup,
   SidebarMenu,
@@ -16,18 +17,25 @@ export function NavMain() {
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {NAV_MAIN.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton
-              isActive={item.url.endsWith(pathname)}
-              render={<Link href={item.url} />}
-              tooltip={item.title}
-            >
-              <item.icon />
-              <span>{item.title}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+        {NAV_MAIN.map((item) => {
+          const isActive = item.url.endsWith(pathname);
+          return (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                isActive={isActive}
+                render={<Link href={item.url} />}
+                tooltip={item.title}
+              >
+                <NavIcon
+                  altIcon={item.solidIcon}
+                  icon={item.icon}
+                  isActive={isActive}
+                />
+                <span>{item.title}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
     </SidebarGroup>
   );

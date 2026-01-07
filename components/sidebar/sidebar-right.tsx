@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { CloseIcon, Icon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -23,7 +23,7 @@ export function SidebarRight({ children }: SidebarRightProps) {
       <SidebarHeader className="flex-row items-center justify-between border-b">
         <span className="font-medium">Details</span>
         <Button onClick={closePanel} size="icon-sm" variant="ghost">
-          <X className="size-4" />
+          <Icon icon={CloseIcon} />
         </Button>
       </SidebarHeader>
       <SidebarContent>{children}</SidebarContent>

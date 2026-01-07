@@ -8,6 +8,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { PageHeaderProvider } from "@/lib/sidebar";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
@@ -33,19 +34,21 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar
-        organizations={organizations ?? []}
-        user={{ email: user.email ?? "" }}
-      />
-      <SidebarInset>
-        <header className="flex h-12 shrink-0 items-center gap-2 px-3">
-          <SidebarTrigger />
-          <Separator className="my-auto h-4" orientation="vertical" />
-          <PageHeader />
-        </header>
-        <main className="flex-1 p-4">{children}</main>
-      </SidebarInset>
-      <SidebarRight />
+      <PageHeaderProvider>
+        <AppSidebar
+          organizations={organizations ?? []}
+          user={{ email: user.email ?? "" }}
+        />
+        <SidebarInset>
+          <header className="flex h-12 shrink-0 items-center gap-2 px-3">
+            <SidebarTrigger />
+            <Separator className="my-auto h-4" orientation="vertical" />
+            <PageHeader />
+          </header>
+          <main className="flex-1 p-4">{children}</main>
+        </SidebarInset>
+        <SidebarRight />
+      </PageHeaderProvider>
     </SidebarProvider>
   );
 }

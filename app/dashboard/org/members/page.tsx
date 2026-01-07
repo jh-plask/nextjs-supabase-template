@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { RequirePermission, useOrgContext } from "@/lib/rbac";
 import { getZodDefaults } from "@/lib/safe-action";
+import { SetPageActions } from "@/lib/sidebar";
 import { createClient } from "@/lib/supabase/client";
 
 interface Member {
@@ -125,21 +126,21 @@ function MembersContent() {
 
   return (
     <div className="space-y-8">
-      {/* Invite Button with Dialog */}
-      <RequirePermission permission="members.invite">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-xl">Team Members</h2>
+      {/* Header Actions */}
+      <SetPageActions>
+        <RequirePermission permission="members.invite">
           <Button onClick={() => setInviteDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Invite Member
+            <Plus className="size-4" />
+            Invite
           </Button>
-          <InviteMemberDialog
-            onOpenChange={setInviteDialogOpen}
-            onSuccess={fetchData}
-            open={inviteDialogOpen}
-          />
-        </div>
-      </RequirePermission>
+        </RequirePermission>
+      </SetPageActions>
+
+      <InviteMemberDialog
+        onOpenChange={setInviteDialogOpen}
+        onSuccess={fetchData}
+        open={inviteDialogOpen}
+      />
 
       {/* Pending Invitations */}
       {invitations.length > 0 && (

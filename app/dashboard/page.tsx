@@ -42,8 +42,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-bold text-2xl">Welcome to your dashboard</h2>
-
       {/* Organization Overview */}
       {currentOrg && (
         <div className="grid gap-4 md:grid-cols-3">

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ConfigDrivenDialog } from "@/components/ui/config-driven-dialog";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { RequirePermission } from "@/lib/rbac";
+import { SetPageActions } from "@/lib/sidebar";
 
 interface Project {
   id: string;
@@ -32,26 +33,20 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-semibold text-2xl">Projects</h1>
-          <p className="text-muted-foreground text-sm">
-            Manage your organization&apos;s projects
-          </p>
-        </div>
+      <SetPageActions>
         <RequirePermission permission="projects.create">
           <Dialog onOpenChange={setCreateOpen} open={createOpen}>
             <DialogTrigger
               render={
                 <Button>
-                  <Plus className="mr-2 size-4" />
-                  New Project
+                  <Plus className="size-4" />
+                  New
                 </Button>
               }
             />
           </Dialog>
         </RequirePermission>
-      </div>
+      </SetPageActions>
 
       {initialProjects.length === 0 ? (
         <div

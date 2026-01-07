@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { NAV_MAIN } from "@/lib/sidebar/constants";
+import { NAV_MAIN, PageHeaderActions } from "@/lib/sidebar";
 
 export function PageHeader() {
   const pathname = usePathname();
@@ -16,5 +16,10 @@ export function PageHeader() {
 
   const title = currentNav?.title ?? "Dashboard";
 
-  return <h1 className="font-medium text-sm">{title}</h1>;
+  return (
+    <div className="flex flex-1 items-center justify-between">
+      <h1 className="font-medium text-sm">{title}</h1>
+      <PageHeaderActions />
+    </div>
+  );
 }

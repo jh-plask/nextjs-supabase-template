@@ -200,9 +200,8 @@ export async function createOrg(
   // Log out and log back in to force a completely fresh session with updated JWT claims
   // This ensures the custom_access_token_hook runs with the new org membership
   await logout(ctx);
-  const testEmail =
-    ctx.owner?.email || ctx.users.get("owner")?.email || "test@test.com";
-  const testPassword = ctx.owner?.password || ctx.users.get("owner")?.password;
+  const testEmail = ctx.owner?.email || "test@test.com";
+  const testPassword = ctx.owner?.password;
   if (testPassword) {
     await login(ctx, testEmail, testPassword);
   }

@@ -5,9 +5,22 @@ import { processInvitation } from "@/actions/invitations";
 import { InvitationSchema } from "@/actions/invitations/schema";
 import { processMember } from "@/actions/members";
 import { MemberSchema } from "@/actions/members/schema";
-import { AddIcon, DeleteIcon, Icon, UserRemoveIcon } from "@/components/icons";
+import {
+  AddIcon,
+  DeleteIcon,
+  Icon,
+  MembersIcon,
+  UserRemoveIcon,
+} from "@/components/icons";
 import { InviteMemberDialog } from "@/components/org/invite-member-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Select,
   SelectContent,
@@ -15,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ListSectionSkeleton } from "@/components/ui/skeleton";
 import { RequirePermission, useOrgContext } from "@/lib/rbac";
 import { getZodDefaults } from "@/lib/safe-action";
 import { SetPageActions } from "@/lib/sidebar";
@@ -121,7 +135,12 @@ function MembersContent() {
   }, [inviteState.status, memberState.status, refreshClaims, fetchData]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="space-y-8">
+        <ListSectionSkeleton count={2} />
+        <ListSectionSkeleton count={3} />
+      </div>
+    );
   }
 
   return (
@@ -257,12 +276,17 @@ export default function MembersPage() {
   return (
     <RequirePermission
       fallback={
-        <div className="text-center">
-          <h2 className="font-semibold text-lg">Access Denied</h2>
-          <p className="text-muted-foreground">
-            You don't have permission to manage members.
-          </p>
-        </div>
+        <Empty className="border py-12">
+          <EmptyMedia variant="icon">
+            <Icon icon={MembersIcon} />
+          </EmptyMedia>
+          <EmptyContent>
+            <EmptyTitle>Access Denied</EmptyTitle>
+            <EmptyDescription>
+              You don&apos;t have permission to manage members.
+            </EmptyDescription>
+          </EmptyContent>
+        </Empty>
       }
       permission="members.invite"
     >

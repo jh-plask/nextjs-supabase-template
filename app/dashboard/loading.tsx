@@ -1,14 +1,16 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { CardSkeleton, ListSectionSkeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLoading() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Skeleton className="h-32 rounded-lg" />
-        <Skeleton className="h-32 rounded-lg" />
-        <Skeleton className="h-32 rounded-lg" />
+      {/* Stats grid */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <CardSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
       </div>
-      <Skeleton className="h-64 rounded-lg" />
+      {/* Profile section */}
+      <ListSectionSkeleton count={4} />
     </div>
   );
 }

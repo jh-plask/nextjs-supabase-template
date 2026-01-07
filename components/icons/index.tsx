@@ -12,11 +12,13 @@
 // Stroke icons (default)
 import {
   Add01Icon,
+  Alert02Icon,
   ArrowDown01Icon,
   ArrowUp01Icon,
   Building03Icon,
   Cancel01Icon,
   Delete02Icon,
+  FileNotFoundIcon,
   FolderLibraryIcon,
   Home09Icon,
   Logout03Icon,
@@ -137,6 +139,13 @@ export const OrgIcon = Building03Icon;
 export const ChevronUpIcon = ArrowUp01Icon;
 export const ChevronDownIcon = ArrowDown01Icon;
 export const ChevronsUpDownIcon = UnfoldMoreIcon;
+
+// ===========================================
+// State Icons (for empty/error states)
+// ===========================================
+
+export const NotFoundIcon = FileNotFoundIcon;
+export const AlertIcon = Alert02Icon;
 
 // Re-export HugeiconsIcon for direct usage where needed
 export { HugeiconsIcon };

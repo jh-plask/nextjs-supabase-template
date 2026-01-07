@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useOrgContext, usePermission } from "./hooks";
 import type { OrgRole, Permission } from "./permissions";
 
@@ -85,8 +86,15 @@ interface OrgGateProps {
   children: ReactNode;
 }
 
+const defaultLoading = (
+  <div className="space-y-4">
+    <Skeleton className="h-8 w-48" />
+    <Skeleton className="h-32 w-full rounded-lg" />
+  </div>
+);
+
 export function OrgGate({
-  loading = <div>Loading...</div>,
+  loading = defaultLoading,
   noOrg = <div>Please select an organization</div>,
   children,
 }: OrgGateProps) {

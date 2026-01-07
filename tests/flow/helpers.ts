@@ -266,30 +266,28 @@ export async function createOrg(
   await login(ctx, ctx.owner.email, ctx.owner.password);
 
   // Debug: Check JWT claims from cookies (SSR mode uses cookies, not localStorage)
+  // Supabase stores auth as: sb-{project-ref}-auth-token (JSON with access_token inside)
   const cookies = await page.context().cookies();
-  const authCookie = cookies.find(
-    (c) => c.name.includes("auth-token") && c.name.includes("access-token")
-  );
+  const authCookie = cookies.find((c) => c.name.includes("-auth-token"));
   if (authCookie) {
     try {
-      // Decode URL-encoded cookie value, then decode base64
+      // Cookie value is URL-encoded JSON containing access_token
       const decoded = decodeURIComponent(authCookie.value);
-      // Try to parse as JWT
-      if (decoded.includes(".")) {
-        const payload = JSON.parse(atob(decoded.split(".")[1]));
+      const authData = JSON.parse(decoded);
+      const accessToken = authData.access_token;
+      if (accessToken?.includes(".")) {
+        // Decode JWT payload (middle part)
+        const payload = JSON.parse(atob(accessToken.split(".")[1]));
         console.log(
-          `[createOrg] JWT claims from cookie: org_id=${payload.org_id}, org_role=${payload.org_role}, orgs=${JSON.stringify(payload.orgs)}`
+          `[createOrg] JWT claims: org_id=${payload.org_id}, org_role=${payload.org_role}`
         );
       } else {
-        // Cookie might be base64 encoded JSON
-        const data = JSON.parse(atob(decoded));
-        console.log(`[createOrg] Cookie data: ${JSON.stringify(data)}`);
+        console.log("[createOrg] No access_token in cookie data");
       }
     } catch (e) {
       console.log(`[createOrg] Failed to parse auth cookie: ${e}`);
     }
   } else {
-    // List all cookie names for debugging
     const allCookieNames = cookies.map((c) => c.name).join(", ");
     console.log(`[createOrg] No auth cookie found. Cookies: ${allCookieNames}`);
   }

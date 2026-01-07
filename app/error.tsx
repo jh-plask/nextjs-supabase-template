@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { AlertIcon, Icon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 export default function Error({
   error,
@@ -15,17 +23,22 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="font-bold text-2xl">Something went wrong</h1>
-      <p className="text-muted-foreground text-sm">
-        An unexpected error occurred.
-      </p>
-      {error.digest && (
-        <p className="font-mono text-muted-foreground text-xs">
-          Error ID: {error.digest}
-        </p>
-      )}
-      <Button onClick={reset}>Try again</Button>
+    <div className="flex min-h-screen items-center justify-center">
+      <Empty>
+        <EmptyMedia variant="icon">
+          <Icon icon={AlertIcon} />
+        </EmptyMedia>
+        <EmptyContent>
+          <EmptyTitle>Something went wrong</EmptyTitle>
+          <EmptyDescription>An unexpected error occurred.</EmptyDescription>
+          {error.digest && (
+            <p className="font-mono text-muted-foreground text-xs">
+              Error ID: {error.digest}
+            </p>
+          )}
+        </EmptyContent>
+        <Button onClick={reset}>Try again</Button>
+      </Empty>
     </div>
   );
 }

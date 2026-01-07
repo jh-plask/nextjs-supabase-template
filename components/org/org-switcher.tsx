@@ -37,6 +37,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useOrgContext } from "@/lib/rbac";
 import { getZodDefaults } from "@/lib/safe-action";
+import { Skeleton } from "../ui/skeleton";
 
 interface Organization {
   id: string;
@@ -70,7 +71,7 @@ export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
   );
 
   // Display name: show target org during switch, otherwise current org
-  const displayName = switchingToOrg?.name ?? currentOrg?.name ?? "Select Org";
+  const displayName = switchingToOrg?.name ?? currentOrg?.name;
   const isLoading = isPending || switchingToOrg !== null;
 
   // Refresh claims and page after successful switch
@@ -110,9 +111,14 @@ export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
                 <Icon icon={OrgIcon} />
               )}
             </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{displayName}</span>
-            </div>
+            {displayName ? (
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{displayName}</span>
+              </div>
+            ) : (
+              <Skeleton className="h-4 w-24" />
+            )}
+
             <Icon className="ml-auto" icon={ChevronsUpDownIcon} />
           </DropdownMenuTrigger>
           <DropdownMenuContent

@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { processOrg } from "@/actions/org";
 import { OrgSchema } from "@/actions/org/schema";
+import { Icon, SettingsIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Field,
   FieldError,
@@ -15,6 +23,7 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { CardSkeleton, FormSkeleton } from "@/components/ui/skeleton";
 import { RequirePermission, useOrgContext } from "@/lib/rbac";
 import { getZodDefaults } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/client";
@@ -74,7 +83,13 @@ function OrgSettingsForm() {
   }, [deleteState.status, router]);
 
   if (isLoading || !org) {
-    return <div>Loading...</div>;
+    return (
+      <div className="space-y-8">
+        <FormSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    );
   }
 
   return (
@@ -185,12 +200,17 @@ export default function OrgSettingsPage() {
   return (
     <RequirePermission
       fallback={
-        <div className="text-center">
-          <h2 className="font-semibold text-lg">Access Denied</h2>
-          <p className="text-muted-foreground">
-            You don't have permission to access organization settings.
-          </p>
-        </div>
+        <Empty className="border py-12">
+          <EmptyMedia variant="icon">
+            <Icon icon={SettingsIcon} />
+          </EmptyMedia>
+          <EmptyContent>
+            <EmptyTitle>Access Denied</EmptyTitle>
+            <EmptyDescription>
+              You don&apos;t have permission to access organization settings.
+            </EmptyDescription>
+          </EmptyContent>
+        </Empty>
       }
       permission="org.update"
     >

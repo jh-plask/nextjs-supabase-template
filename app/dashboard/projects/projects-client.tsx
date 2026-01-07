@@ -7,10 +7,23 @@ import {
   projectFormConfigs,
 } from "@/actions/projects/config";
 import { ProjectSchema } from "@/actions/projects/schema";
-import { AddIcon, DeleteIcon, EditIcon, Icon } from "@/components/icons";
+import {
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  Icon,
+  ProjectsIcon,
+} from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfigDrivenDialog } from "@/components/ui/config-driven-dialog";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { RequirePermission } from "@/lib/rbac";
 import { SetPageActions } from "@/lib/sidebar";
 
@@ -49,18 +62,23 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
       </SetPageActions>
 
       {initialProjects.length === 0 ? (
-        <div
-          className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12"
-          data-testid="projects-empty"
-        >
-          <p className="mb-4 text-muted-foreground">No projects yet</p>
+        <Empty className="border py-12" data-testid="projects-empty">
+          <EmptyMedia variant="icon">
+            <Icon icon={ProjectsIcon} />
+          </EmptyMedia>
+          <EmptyContent>
+            <EmptyTitle>No projects yet</EmptyTitle>
+            <EmptyDescription>
+              Get started by creating your first project.
+            </EmptyDescription>
+          </EmptyContent>
           <RequirePermission permission="projects.create">
             <Button onClick={() => setCreateOpen(true)} variant="outline">
-              <Icon className="mr-2" icon={AddIcon} />
-              Create your first project
+              <Icon icon={AddIcon} />
+              Create project
             </Button>
           </RequirePermission>
-        </div>
+        </Empty>
       ) : (
         <div
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"

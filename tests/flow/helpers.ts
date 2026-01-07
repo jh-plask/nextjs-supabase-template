@@ -448,11 +448,15 @@ export async function canSee(
   if (selector === "newProject") {
     await page.goto(`${baseUrl}/dashboard/projects`);
     await page.waitForLoadState("load");
+    // Wait for page to be fully interactive
+    await page.waitForTimeout(2000);
     // Wait for RBAC context to load (button wrapped in RequirePermission)
-    return page
+    const visible = await page
       .getByRole("button", { name: RE_CREATE_PROJECT })
       .isVisible({ timeout: 10_000 })
       .catch(() => false);
+    console.log(`[canSee] newProject visible: ${visible}`);
+    return visible;
   }
 
   if (selector === "editBtn") {
@@ -476,11 +480,15 @@ export async function canSee(
   if (selector === "inviteBtn") {
     await page.goto(`${baseUrl}/dashboard/org/members`);
     await page.waitForLoadState("load");
+    // Wait for page to be fully interactive
+    await page.waitForTimeout(2000);
     // Wait for RBAC context to load
-    return page
+    const visible = await page
       .getByRole("button", { name: RE_INVITE_MEMBER })
       .isVisible({ timeout: 10_000 })
       .catch(() => false);
+    console.log(`[canSee] inviteBtn visible: ${visible}`);
+    return visible;
   }
 
   return false;

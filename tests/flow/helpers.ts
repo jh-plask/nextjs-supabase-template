@@ -197,24 +197,8 @@ export async function createOrg(
   // Wait for it to complete and for cookies to be updated
   await page.waitForTimeout(3000);
 
-  // Get the created org from the database
-  const slug = name.toLowerCase().replace(/\s+/g, "-");
+  // Get the owner user ID first
   const admin = createAdminClient();
-  const { data: org, error: orgError } = await admin
-    .from("organizations")
-    .select("id, name, slug")
-    .eq("slug", slug)
-    .single();
-
-  if (orgError || !org) {
-    throw new Error(`Failed to find created org: ${orgError?.message}`);
-  }
-
-  // Set org data in context
-  ctx.org = { id: org.id, name: org.name, slug: org.slug };
-  console.log(`[createOrg] Org created: ${org.id}, slug: ${org.slug}`);
-
-  // Get the owner user ID
   const { data: userData } = await admin.auth.admin.listUsers();
   const ownerUser = userData?.users.find(
     (u) => u.email?.toLowerCase() === ctx.owner.email.toLowerCase()
@@ -223,6 +207,34 @@ export async function createOrg(
   if (!ownerUser) {
     throw new Error(`Owner user not found: ${ctx.owner.email}`);
   }
+
+  // Find the org the owner just created (they'll be the owner member)
+  const { data: membership, error: memberError } = await admin
+    .from("organization_members")
+    .select("organization_id, role")
+    .eq("user_id", ownerUser.id)
+    .eq("role", "owner")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (memberError || !membership) {
+    throw new Error(`Failed to find owner membership: ${memberError?.message}`);
+  }
+
+  const { data: org, error: orgError } = await admin
+    .from("organizations")
+    .select("id, name, slug")
+    .eq("id", membership.organization_id)
+    .single();
+
+  if (orgError || !org) {
+    throw new Error(`Failed to find org: ${orgError?.message}`);
+  }
+
+  // Set org data in context
+  ctx.org = { id: org.id, name: org.name, slug: org.slug };
+  console.log(`[createOrg] Org created: ${org.id}, slug: ${org.slug}`);
 
   // Explicitly set user_preferences so JWT claims will have org_id
   await admin.from("user_preferences").upsert({
@@ -236,7 +248,7 @@ export async function createOrg(
   await logout(ctx);
   await login(ctx, ctx.owner.email, ctx.owner.password);
 
-  return slug;
+  return org.slug;
 }
 
 // ===========================================

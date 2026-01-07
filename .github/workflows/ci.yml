@@ -40,6 +40,8 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: lint-typecheck
+    # Only run if Supabase secrets are configured
+    if: vars.SUPABASE_CONFIGURED == 'true'
     steps:
       - uses: actions/checkout@v4
 

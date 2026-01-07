@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createSafeAction } from "@/lib/safe-action";
+import { createClient } from "@/lib/supabase/server";
 import { getHandler } from "./logic";
 import { AuthSchema } from "./schema";
 
@@ -18,3 +19,10 @@ export const processAuth = createSafeAction(AuthSchema, async (data) => {
 
   return result;
 });
+
+// Simple logout action for direct form usage (doesn't use createSafeAction)
+export async function logoutAction() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/auth?op=login");
+}

@@ -2,7 +2,11 @@ import { Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
 
-function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
+interface SpinnerProps {
+  className?: string;
+}
+
+function Spinner({ className }: SpinnerProps) {
   return (
     <HugeiconsIcon
       aria-label="Loading"
@@ -10,7 +14,6 @@ function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
       icon={Loading03Icon}
       role="status"
       strokeWidth={2}
-      {...props}
     />
   );
 }

@@ -60,7 +60,7 @@ function MembersContent() {
 
     const supabase = createClient();
 
-    // Fetch members with user emails
+    // Fetch members with user emails (RLS filters by org_id from JWT claims)
     const { data: membersData } = await supabase
       .from("organization_members")
       .select(
@@ -72,8 +72,7 @@ function MembersContent() {
           email
         )
       `
-      )
-      .eq("organization_id", orgId);
+      );
 
     if (membersData) {
       setMembers(
@@ -96,11 +95,10 @@ function MembersContent() {
       );
     }
 
-    // Fetch pending invitations
+    // Fetch pending invitations (RLS filters by org_id from JWT claims)
     const { data: invitationsData } = await supabase
       .from("organization_invitations")
       .select("id, email, role, status, expires_at")
-      .eq("organization_id", orgId)
       .eq("status", "pending");
 
     if (invitationsData) {
@@ -137,6 +135,7 @@ function MembersContent() {
           </Button>
           <InviteMemberDialog
             onOpenChange={setInviteDialogOpen}
+            onSuccess={fetchData}
             open={inviteDialogOpen}
           />
         </div>

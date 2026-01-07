@@ -1,6 +1,13 @@
 import { redirect } from "next/navigation";
-import { LogoutButton } from "@/components/auth/logout-button";
-import { OrgSwitcher } from "@/components/org/org-switcher";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { PageHeader } from "@/components/sidebar/page-header";
+import { SidebarRight } from "@/components/sidebar/sidebar-right";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
@@ -25,20 +32,20 @@ export default async function DashboardLayout({
     .order("name");
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-4">
-            <h1 className="font-semibold">Dashboard</h1>
-            <OrgSwitcher organizations={organizations ?? []} />
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-muted-foreground text-sm">{user.email}</span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-      <main className="container mx-auto px-4 py-8">{children}</main>
-    </div>
+    <SidebarProvider>
+      <AppSidebar
+        organizations={organizations ?? []}
+        user={{ email: user.email ?? "" }}
+      />
+      <SidebarInset>
+        <header className="flex h-12 shrink-0 items-center gap-2 px-3">
+          <SidebarTrigger />
+          <Separator className="my-auto h-4" orientation="vertical" />
+          <PageHeader />
+        </header>
+        <main className="flex-1 p-4">{children}</main>
+      </SidebarInset>
+      <SidebarRight />
+    </SidebarProvider>
   );
 }

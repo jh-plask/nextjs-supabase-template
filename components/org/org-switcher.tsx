@@ -1,7 +1,6 @@
 "use client";
 
-import { ChevronDown, Plus, Settings } from "lucide-react";
-import Link from "next/link";
+import { Building2, ChevronsUpDown, Plus, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   useActionState,
@@ -23,6 +22,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { useOrgContext } from "@/lib/rbac";
 import { getZodDefaults } from "@/lib/safe-action";
@@ -41,6 +46,7 @@ const initialState = getZodDefaults(OrgSchema);
 
 export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
   const router = useRouter();
+  const { isMobile } = useSidebar();
   const { orgId, orgRole, refreshClaims } = useOrgContext();
   const [state, action] = useActionState(processOrg, initialState);
   const [isPending, startTransition] = useTransition();
@@ -77,80 +83,108 @@ export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
   }, [state, refreshClaims, router]);
 
   return (
-    <DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
-      <DropdownMenuTrigger
-        className="inline-flex h-8 w-48 items-center justify-between gap-1.5 whitespace-nowrap rounded-lg border border-border bg-background px-2.5 font-medium text-sm transition-all hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
-        data-testid="org-switcher-trigger"
-        disabled={isLoading}
-      >
-        <span className="truncate">{displayName}</span>
-        {isLoading ? (
-          <Spinner className="ml-2 shrink-0" />
-        ) : (
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Organizations</DropdownMenuLabel>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-
-        {organizations.map((org) => (
-          <DropdownMenuItem
-            className={org.id === orgId ? "bg-accent" : ""}
-            data-testid={`org-item-${org.slug}`}
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
+          <DropdownMenuTrigger
+            className="w-full"
+            data-testid="org-switcher-trigger"
             disabled={isLoading}
-            key={org.id}
-            onClick={() => {
-              if (org.id !== orgId) {
-                setDropdownOpen(false);
-                setSwitchingToOrg(org);
-                startTransition(() => {
-                  const formData = new FormData();
-                  formData.append("operation", "switch");
-                  formData.append("orgId", org.id);
-                  action(formData);
-                });
-              }
-            }}
+            render={
+              <SidebarMenuButton
+                className="data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground"
+                tooltip={displayName}
+              />
+            }
           >
-            <span className="truncate">{org.name}</span>
-            {org.id === orgId && (
-              <span className="ml-auto text-muted-foreground text-xs">
-                {orgRole}
-              </span>
+            <div className="flex size-6.5 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              {isLoading ? (
+                <Spinner className="size-4" />
+              ) : (
+                <Building2 className="size-4" />
+              )}
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">{displayName}</span>
+            </div>
+            <ChevronsUpDown className="ml-auto" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            side={isMobile ? "bottom" : "right"}
+            sideOffset={4}
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-muted-foreground text-xs">
+                Organizations
+              </DropdownMenuLabel>
+
+              {organizations.map((org) => (
+                <DropdownMenuItem
+                  className={org.id === orgId ? "bg-accent" : ""}
+                  data-testid={`org-item-${org.slug}`}
+                  disabled={isLoading}
+                  key={org.id}
+                  onClick={() => {
+                    if (org.id !== orgId) {
+                      setDropdownOpen(false);
+                      setSwitchingToOrg(org);
+                      startTransition(() => {
+                        const formData = new FormData();
+                        formData.append("operation", "switch");
+                        formData.append("orgId", org.id);
+                        action(formData);
+                      });
+                    }
+                  }}
+                >
+                  <div className="flex size-6 items-center justify-center rounded-sm border">
+                    <Building2 className="size-4 shrink-0" />
+                  </div>
+                  <span className="truncate">{org.name}</span>
+                  {org.id === orgId && (
+                    <span className="ml-auto text-muted-foreground text-xs">
+                      {orgRole}
+                    </span>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              data-testid="org-new-link"
+              onClick={() => {
+                setDropdownOpen(false);
+                setCreateDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-2 size-4" />
+              New Organization
+            </DropdownMenuItem>
+
+            {currentOrg && (orgRole === "owner" || orgRole === "admin") && (
+              <DropdownMenuItem
+                data-testid="org-settings-link"
+                onClick={() => {
+                  setDropdownOpen(false);
+                  router.push("/dashboard/org/settings");
+                }}
+              >
+                <Settings className="mr-2 size-4" />
+                Settings
+              </DropdownMenuItem>
             )}
-          </DropdownMenuItem>
-        ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          data-testid="org-new-link"
-          onClick={() => {
-            setDropdownOpen(false);
-            setCreateDialogOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          New Organization
-        </DropdownMenuItem>
-
-        {currentOrg && (orgRole === "owner" || orgRole === "admin") && (
-          <DropdownMenuItem data-testid="org-settings-link">
-            <Link className="flex items-center" href="/dashboard/org/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Link>
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-
-      <OrgCreateDialog
-        onOpenChange={setCreateDialogOpen}
-        open={createDialogOpen}
-      />
-    </DropdownMenu>
+        <OrgCreateDialog
+          onOpenChange={setCreateDialogOpen}
+          open={createDialogOpen}
+        />
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }

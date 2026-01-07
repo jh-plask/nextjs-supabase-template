@@ -1,4 +1,5 @@
-import { type Operation, orgConfig } from "@/actions/org/logic";
+import { orgConfig } from "@/actions/org/logic";
+import type { Operation } from "@/actions/org/schema";
 import type { DbEffect } from "./auth";
 
 // --- Test Plan Interface ---

@@ -1,3 +1,4 @@
+import { requireOrgContext } from "@/lib/supabase/claims";
 import { createClient } from "@/lib/supabase/server";
 import type { InvitationInput, OperationConfig } from "../schema";
 
@@ -16,29 +17,13 @@ async function handler(data: InvitationInput) {
     throw new Error("Email is required");
   }
 
-  // Get current org from JWT
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const orgId = session?.access_token
-    ? JSON.parse(atob(session.access_token.split(".")[1])).org_id
-    : null;
+  // Get org context with defensive refresh (handles JWT sync timing issues)
+  const { org_id: orgId } = await requireOrgContext(supabase);
 
-  if (!orgId) {
-    throw new Error("No organization selected");
-  }
-
-  // Check if user is already a member
-  const { data: existingMember } = await supabase
-    .from("organization_members")
-    .select("id")
-    .eq("organization_id", orgId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (existingMember) {
-    throw new Error("User is already a member of this organization");
-  }
+  // Note: We don't check if invitee is already a member here because:
+  // 1. We'd need admin API to look up user by email
+  // 2. The accept flow will verify membership status
+  // 3. Duplicate invitations are caught by DB unique constraint (error 23505)
 
   // Create invitation (RLS will enforce permissions)
   const { data: invitation, error } = await supabase

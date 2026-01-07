@@ -34,12 +34,16 @@ export interface ConfigDrivenFormProps<TFieldName extends string, TData> {
   fieldConfigs: Record<TFieldName, FieldConfig>;
   /** Hidden fields to include in form submission */
   hiddenFields?: Record<string, string>;
+  /** Initial values for form fields (for edit mode) */
+  initialValues?: Partial<Record<TFieldName, string>>;
   /** Additional content to render after the form (e.g., OAuth buttons) */
   footer?: React.ReactNode;
   /** Test ID for form fields (receives field name, returns test ID) */
   getFieldTestId?: (fieldName: TFieldName) => string;
   /** Test ID for submit button */
   submitTestId?: string;
+  /** Submit button variant (default: "default", use "destructive" for delete) */
+  submitVariant?: "default" | "destructive";
   /** Callback when form state changes */
   onStateChange?: (state: ActionState<TData>) => void;
   /** Custom class name for the form container */
@@ -59,9 +63,11 @@ export function ConfigDrivenForm<TFieldName extends string, TData>({
   uiConfig,
   fieldConfigs,
   hiddenFields,
+  initialValues,
   footer,
   getFieldTestId,
   submitTestId,
+  submitVariant,
   onStateChange,
   className,
 }: ConfigDrivenFormProps<TFieldName, TData>) {
@@ -117,7 +123,9 @@ export function ConfigDrivenForm<TFieldName extends string, TData>({
               {fields.map((fieldName) => {
                 const config = fieldConfigs[fieldName];
                 const error = state.errors?.[fieldName]?.[0];
-                const defaultValue = state.defaultValues?.[fieldName] as string;
+                // Use initialValues first (for edit mode), then fall back to state.defaultValues
+                const defaultValue = (initialValues?.[fieldName] ??
+                  state.defaultValues?.[fieldName]) as string;
 
                 const Component = fieldComponents[config.type];
 
@@ -150,6 +158,7 @@ export function ConfigDrivenForm<TFieldName extends string, TData>({
             data-testid={submitTestId}
             disabled={isPending}
             type="submit"
+            variant={submitVariant}
           >
             {isPending ? submit.pending : submit.label}
           </Button>

@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { OperationConfig, OrgInput } from "../schema";
 
@@ -19,8 +20,15 @@ async function handler(data: OrgInput) {
     throw new Error(error.message);
   }
 
-  // Refresh session to get new JWT claims with org info
-  await supabase.auth.refreshSession();
+  // Force session refresh to get new JWT claims with org_id and org_role
+  // The custom access token hook will populate these from user_preferences
+  const { error: refreshError } = await supabase.auth.refreshSession();
+  if (refreshError) {
+    console.error("Session refresh failed:", refreshError);
+  }
+
+  // Revalidate dashboard routes to pick up new session
+  revalidatePath("/dashboard", "layout");
 
   return {
     orgId: result.id,

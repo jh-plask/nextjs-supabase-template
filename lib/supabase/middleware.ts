@@ -29,14 +29,20 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session - important for Server Components
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   // Route protection logic
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
   const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
+
+  // For dashboard routes, refresh session to get latest JWT claims (org_id, org_role)
+  // For other routes, just validate with getUser() for performance
+  let user = null;
+  if (isProtectedRoute) {
+    const { data } = await supabase.auth.refreshSession();
+    user = data.session?.user ?? null;
+  } else {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  }
 
   // Redirect unauthenticated users from protected routes
   if (!user && isProtectedRoute) {

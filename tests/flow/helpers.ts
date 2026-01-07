@@ -421,7 +421,10 @@ export async function createProject(
   await page.waitForLoadState("load");
 
   // Wait for the Create project button to appear (indicates RBAC context is loaded)
-  const createBtn = page.getByRole("button", { name: RE_CREATE_PROJECT });
+  // Use .first() because both header "New" and empty state "Create project" may be visible
+  const createBtn = page
+    .getByRole("button", { name: RE_CREATE_PROJECT })
+    .first();
   await expect(createBtn).toBeVisible({ timeout: 15_000 });
 
   // Click "Create project" button and wait for dialog
@@ -450,8 +453,10 @@ export async function canSee(
     await page.waitForLoadState("load");
     // Wait for RBAC context to load (button wrapped in RequirePermission)
     await page.waitForTimeout(2000);
+    // Use .first() because both header "New" and empty state "Create project" may be visible
     return page
       .getByRole("button", { name: RE_CREATE_PROJECT })
+      .first()
       .isVisible({ timeout: 10_000 })
       .catch(() => false);
   }

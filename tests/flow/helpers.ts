@@ -265,33 +265,34 @@ export async function createOrg(
   await page.waitForTimeout(1000);
   await login(ctx, ctx.owner.email, ctx.owner.password);
 
-  // Debug: Check JWT claims after login
-  const jwtPayload = await page.evaluate(async () => {
-    // Get the session from localStorage (Supabase stores it there)
-    const storageKey = Object.keys(localStorage).find((k) =>
-      k.includes("supabase.auth.token")
-    );
-    if (!storageKey) return { error: "No auth token in localStorage" };
-
+  // Debug: Check JWT claims from cookies (SSR mode uses cookies, not localStorage)
+  const cookies = await page.context().cookies();
+  const authCookie = cookies.find(
+    (c) => c.name.includes("auth-token") && c.name.includes("access-token")
+  );
+  if (authCookie) {
     try {
-      const data = JSON.parse(localStorage.getItem(storageKey) || "{}");
-      const accessToken =
-        data.access_token || data.currentSession?.access_token;
-      if (!accessToken) return { error: "No access_token found", data };
-
-      // Decode JWT payload
-      const payload = JSON.parse(atob(accessToken.split(".")[1]));
-      return {
-        org_id: payload.org_id,
-        org_role: payload.org_role,
-        orgs: payload.orgs,
-        sub: payload.sub,
-      };
+      // Decode URL-encoded cookie value, then decode base64
+      const decoded = decodeURIComponent(authCookie.value);
+      // Try to parse as JWT
+      if (decoded.includes(".")) {
+        const payload = JSON.parse(atob(decoded.split(".")[1]));
+        console.log(
+          `[createOrg] JWT claims from cookie: org_id=${payload.org_id}, org_role=${payload.org_role}, orgs=${JSON.stringify(payload.orgs)}`
+        );
+      } else {
+        // Cookie might be base64 encoded JSON
+        const data = JSON.parse(atob(decoded));
+        console.log(`[createOrg] Cookie data: ${JSON.stringify(data)}`);
+      }
     } catch (e) {
-      return { error: String(e) };
+      console.log(`[createOrg] Failed to parse auth cookie: ${e}`);
     }
-  });
-  console.log(`[createOrg] JWT claims: ${JSON.stringify(jwtPayload)}`);
+  } else {
+    // List all cookie names for debugging
+    const allCookieNames = cookies.map((c) => c.name).join(", ");
+    console.log(`[createOrg] No auth cookie found. Cookies: ${allCookieNames}`);
+  }
 
   console.log("[createOrg] Full re-login completed");
 

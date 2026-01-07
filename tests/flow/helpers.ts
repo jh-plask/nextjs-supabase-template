@@ -171,14 +171,20 @@ export async function createOrg(
   await page.goto(`${baseUrl}/dashboard/org/new`);
   await page.getByLabel(RE_ORG_NAME).fill(name);
   await page.getByRole("button", { name: RE_CREATE }).click();
+
+  // Wait for navigation to dashboard after successful creation
   await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
 
-  // Wait for DB transaction to fully commit
-  await page.waitForTimeout(2000);
+  // The page calls refreshClaims() after success but this is async
+  // Wait for the client-side session refresh to complete
+  await page.waitForTimeout(5000);
 
-  // Reload to refresh session via middleware
-  await page.reload();
-  await page.waitForLoadState("load");
+  // Reload multiple times to ensure middleware refreshes session
+  for (let i = 0; i < 3; i++) {
+    await page.reload();
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(1000);
+  }
 
   return name.toLowerCase().replace(/\s+/g, "-");
 }

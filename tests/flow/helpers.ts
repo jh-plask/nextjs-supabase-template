@@ -193,15 +193,18 @@ export async function createOrg(
   // Wait for navigation to dashboard after successful creation
   await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
 
-  // The page calls refreshClaims() after success but this is async
-  // Wait for the client-side session refresh to complete
+  // The app calls refreshClaims() after org creation
+  // Wait for it to complete and for cookies to be updated
   await page.waitForTimeout(5000);
 
-  // Reload multiple times to ensure middleware refreshes session
-  for (let i = 0; i < 3; i++) {
-    await page.reload();
-    await page.waitForLoadState("load");
-    await page.waitForTimeout(1000);
+  // Log out and log back in to force a completely fresh session with updated JWT claims
+  // This ensures the custom_access_token_hook runs with the new org membership
+  await logout(ctx);
+  const testEmail =
+    ctx.owner?.email || ctx.users.get("owner")?.email || "test@test.com";
+  const testPassword = ctx.owner?.password || ctx.users.get("owner")?.password;
+  if (testPassword) {
+    await login(ctx, testEmail, testPassword);
   }
 
   return name.toLowerCase().replace(/\s+/g, "-");

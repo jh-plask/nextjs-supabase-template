@@ -1,14 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
+import { config } from "dotenv";
+
+// Load environment variables from .env.local for tests
+config({ path: ".env.local" });
 
 const PORT = process.env.CI ? 3000 : 3005;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./tests",
-  fullyParallel: true,
+  fullyParallel: false, // Tests share a single test user, avoid parallel execution
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1, // Single worker to prevent auth race conditions
   reporter: process.env.CI ? "github" : "html",
   use: {
     baseURL: BASE_URL,

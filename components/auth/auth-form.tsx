@@ -8,17 +8,14 @@ import {
   type Operation,
 } from "@/actions/auth/config";
 import { AuthSchema } from "@/actions/auth/schema";
-import {
-  ConfigDrivenForm,
-  FieldSeparator,
-} from "@/components/ui/config-driven-form";
+import { ConfigDrivenForm } from "@/components/ui/config-driven-form";
 import { getZodDefaults } from "@/lib/safe-action";
 import { OAuthButtons } from "./oauth-buttons";
 
 const initialState = getZodDefaults(AuthSchema);
 
 export function AuthForm({ operation }: { operation: Operation }) {
-  const { fields, showOAuth, links, ...uiConfig } = authUIConfig[operation];
+  const { fields, links, ...uiConfig } = authUIConfig[operation];
 
   return (
     <ConfigDrivenForm
@@ -26,12 +23,7 @@ export function AuthForm({ operation }: { operation: Operation }) {
       fieldConfigs={fieldConfigs}
       footer={
         <>
-          {showOAuth && (
-            <>
-              <FieldSeparator>OR CONTINUE WITH</FieldSeparator>
-              <OAuthButtons />
-            </>
-          )}
+          <OAuthButtons />
           {links?.map(({ href, label, testId }) => (
             <p className="text-center text-muted-foreground text-sm" key={href}>
               <Link

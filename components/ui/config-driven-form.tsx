@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -12,7 +12,7 @@ import {
   FieldSeparator,
   FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { fieldComponents } from "@/lib/form/field-components";
 import type { FieldConfig, FormUIConfig } from "@/lib/form-config";
 import type { ActionState } from "@/lib/safe-action";
 
@@ -62,10 +62,22 @@ export function ConfigDrivenForm<TFieldName extends string, TData>({
   footer,
   getFieldTestId,
   submitTestId,
+  onStateChange,
   className,
 }: ConfigDrivenFormProps<TFieldName, TData>) {
   const [state, formAction, isPending] = useActionState(action, initialState);
   const { label, description, fields, submit } = uiConfig;
+
+  // Track previous status to detect changes
+  const prevStatusRef = useRef(state.status);
+
+  // Call onStateChange when status changes (not on initial mount)
+  useEffect(() => {
+    if (prevStatusRef.current !== state.status && state.status !== "idle") {
+      onStateChange?.(state);
+    }
+    prevStatusRef.current = state.status;
+  }, [state, onStateChange]);
 
   const successMessage =
     state.status === "success" ? getSuccessMessage(state.data) : null;
@@ -105,19 +117,27 @@ export function ConfigDrivenForm<TFieldName extends string, TData>({
               {fields.map((fieldName) => {
                 const config = fieldConfigs[fieldName];
                 const error = state.errors?.[fieldName]?.[0];
+                const defaultValue = state.defaultValues?.[fieldName] as string;
+
+                const Component = fieldComponents[config.type];
+
                 return (
                   <Field data-invalid={!!error} key={fieldName}>
                     <FieldLabel htmlFor={fieldName}>{config.label}</FieldLabel>
-                    <Input
-                      aria-invalid={!!error}
-                      autoComplete={config.autoComplete}
-                      data-testid={getFieldTestId?.(fieldName)}
-                      defaultValue={state.defaultValues?.[fieldName] as string}
-                      id={fieldName}
+
+                    <Component
+                      config={config}
+                      defaultValue={defaultValue}
+                      error={error}
                       name={fieldName}
-                      placeholder={config.placeholder}
-                      type={config.type}
+                      testId={getFieldTestId?.(fieldName)}
                     />
+
+                    {config.description && (
+                      <p className="text-muted-foreground text-xs">
+                        {config.description}
+                      </p>
+                    )}
                     <FieldError>{error}</FieldError>
                   </Field>
                 );

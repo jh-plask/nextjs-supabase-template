@@ -1,9 +1,27 @@
 // --- Base Field Configuration ---
+export type FieldType =
+  | "text"
+  | "email"
+  | "password"
+  | "number"
+  | "tel"
+  | "url"
+  | "select";
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
 export interface FieldConfig {
   label: string;
-  type: "text" | "email" | "password" | "number" | "tel" | "url";
+  type: FieldType;
   placeholder?: string;
   autoComplete?: string;
+  /** Options for select fields */
+  options?: SelectOption[];
+  /** Description text below the field */
+  description?: string;
 }
 
 // --- Base Form UI Configuration ---

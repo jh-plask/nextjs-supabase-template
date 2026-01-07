@@ -7,7 +7,6 @@ export const authUIConfig: Record<Operation, AuthUIConfig> = {
     description: "Sign in to your account",
     fields: ["email", "password"],
     submit: { label: "Sign In", pending: "Signing in..." },
-    showOAuth: true,
     links: [
       {
         href: "/auth?op=signup",
@@ -26,7 +25,6 @@ export const authUIConfig: Record<Operation, AuthUIConfig> = {
     description: "Create a new account",
     fields: ["email", "password", "confirmPassword"],
     submit: { label: "Create Account", pending: "Creating..." },
-    showOAuth: true,
     links: [
       {
         href: "/auth?op=login",
@@ -40,7 +38,6 @@ export const authUIConfig: Record<Operation, AuthUIConfig> = {
     description: "Sign in with a magic link sent to your email",
     fields: ["email"],
     submit: { label: "Send Magic Link", pending: "Sending..." },
-    showOAuth: false,
     links: [
       {
         href: "/auth?op=login",

@@ -77,7 +77,6 @@ export type AuthInput = z.infer<typeof AuthSchema>;
 
 // --- Operation Config (extends FormUIConfig with auth-specific fields) ---
 export interface AuthUIExtensions {
-  showOAuth?: boolean;
   links?: (LinkConfig & { testId: string })[];
 }
 

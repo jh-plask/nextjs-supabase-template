@@ -195,18 +195,48 @@ export async function createOrg(
 
   // The app calls refreshClaims() after org creation
   // Wait for it to complete and for cookies to be updated
-  await page.waitForTimeout(5000);
+  await page.waitForTimeout(3000);
+
+  // Get the created org from the database
+  const slug = name.toLowerCase().replace(/\s+/g, "-");
+  const admin = createAdminClient();
+  const { data: org, error: orgError } = await admin
+    .from("organizations")
+    .select("id, name, slug")
+    .eq("slug", slug)
+    .single();
+
+  if (orgError || !org) {
+    throw new Error(`Failed to find created org: ${orgError?.message}`);
+  }
+
+  // Set org data in context
+  ctx.org = { id: org.id, name: org.name, slug: org.slug };
+  console.log(`[createOrg] Org created: ${org.id}, slug: ${org.slug}`);
+
+  // Get the owner user ID
+  const { data: userData } = await admin.auth.admin.listUsers();
+  const ownerUser = userData?.users.find(
+    (u) => u.email?.toLowerCase() === ctx.owner.email.toLowerCase()
+  );
+
+  if (!ownerUser) {
+    throw new Error(`Owner user not found: ${ctx.owner.email}`);
+  }
+
+  // Explicitly set user_preferences so JWT claims will have org_id
+  await admin.from("user_preferences").upsert({
+    user_id: ownerUser.id,
+    current_organization_id: org.id,
+  });
+  console.log("[createOrg] Set user_preferences.current_organization_id");
 
   // Log out and log back in to force a completely fresh session with updated JWT claims
   // This ensures the custom_access_token_hook runs with the new org membership
   await logout(ctx);
-  const testEmail = ctx.owner?.email || "test@test.com";
-  const testPassword = ctx.owner?.password;
-  if (testPassword) {
-    await login(ctx, testEmail, testPassword);
-  }
+  await login(ctx, ctx.owner.email, ctx.owner.password);
 
-  return name.toLowerCase().replace(/\s+/g, "-");
+  return slug;
 }
 
 // ===========================================

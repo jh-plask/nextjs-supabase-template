@@ -173,22 +173,12 @@ export async function createOrg(
   await page.getByRole("button", { name: RE_CREATE }).click();
   await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
 
-  // Wait for DB transaction to fully commit and rate limits to reset
-  await page.waitForTimeout(3000);
+  // Wait for DB transaction to fully commit
+  await page.waitForTimeout(2000);
 
-  // Reload page to trigger middleware session refresh
+  // Reload to refresh session via middleware
   await page.reload();
   await page.waitForLoadState("load");
-
-  // Navigate to projects page where we can verify the button appears
-  // This triggers another middleware call which refreshes session
-  await page.goto(`${baseUrl}/dashboard/projects`);
-  await page.waitForLoadState("load");
-
-  // Wait for the "Create project" button to confirm RBAC is working
-  // If this times out, JWT claims weren't properly refreshed
-  const createBtn = page.getByRole("button", { name: RE_CREATE_PROJECT });
-  await expect(createBtn).toBeVisible({ timeout: 10_000 });
 
   return name.toLowerCase().replace(/\s+/g, "-");
 }

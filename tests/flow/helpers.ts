@@ -29,7 +29,7 @@ const RE_INVITE_MEMBER = /invite member/i;
 const RE_EMAIL = /email/i;
 const RE_SEND_INVITE = /send invite/i;
 const RE_INVITATION_SENT = /invitation sent/i;
-const RE_NEW_PROJECT = /new project/i;
+const RE_CREATE_PROJECT = /create project/i;
 const RE_NAME = /name/i;
 
 // ===========================================
@@ -323,8 +323,8 @@ export async function createProject(
   await page.goto(`${baseUrl}/dashboard/projects`);
   await page.waitForLoadState("load");
 
-  // Click "New Project" button and wait for dialog
-  await page.getByRole("button", { name: RE_NEW_PROJECT }).click();
+  // Click "Create project" button and wait for dialog
+  await page.getByRole("button", { name: RE_CREATE_PROJECT }).click();
   await page.waitForTimeout(500); // Wait for dialog animation
 
   // Fill and submit form
@@ -348,7 +348,7 @@ export async function canSee(
     await page.goto(`${baseUrl}/dashboard/projects`);
     await page.waitForLoadState("load");
     return page
-      .getByRole("button", { name: RE_NEW_PROJECT })
+      .getByRole("button", { name: RE_CREATE_PROJECT })
       .isVisible({ timeout: 3000 })
       .catch(() => false);
   }

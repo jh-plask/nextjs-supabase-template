@@ -172,9 +172,20 @@ export async function createOrg(
   await page.getByLabel(RE_ORG_NAME).fill(name);
   await page.getByRole("button", { name: RE_CREATE }).click();
   await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
+
+  // Wait for DB transaction to fully commit before refreshing session
+  await page.waitForTimeout(1000);
+
   // Force hard reload to ensure fresh cookies with updated JWT claims
   await page.reload();
   await page.waitForLoadState("load");
+
+  // Navigate away and back to force a clean session refresh via middleware
+  await page.goto(`${baseUrl}/auth`);
+  await page.waitForLoadState("load");
+  await page.goto(`${baseUrl}/dashboard`);
+  await page.waitForLoadState("load");
+
   return name.toLowerCase().replace(/\s+/g, "-");
 }
 
@@ -323,8 +334,12 @@ export async function createProject(
   await page.goto(`${baseUrl}/dashboard/projects`);
   await page.waitForLoadState("load");
 
+  // Wait for the Create project button to appear (indicates RBAC context is loaded)
+  const createBtn = page.getByRole("button", { name: RE_CREATE_PROJECT });
+  await expect(createBtn).toBeVisible({ timeout: 15_000 });
+
   // Click "Create project" button and wait for dialog
-  await page.getByRole("button", { name: RE_CREATE_PROJECT }).click();
+  await createBtn.click();
   await page.waitForTimeout(500); // Wait for dialog animation
 
   // Fill and submit form

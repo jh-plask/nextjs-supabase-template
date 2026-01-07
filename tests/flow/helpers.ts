@@ -114,7 +114,7 @@ export async function login(
   password: string
 ): Promise<void> {
   // Add delay before login to avoid Supabase auth rate limits
-  await ctx.page.waitForTimeout(2000);
+  await ctx.page.waitForTimeout(3000);
 
   console.log(`[login] Attempting login for: ${email}`);
   await fillAuthForm(ctx, "login", { email, password });
@@ -173,13 +173,22 @@ export async function createOrg(
   await page.getByRole("button", { name: RE_CREATE }).click();
   await expect(page).toHaveURL(RE_DASHBOARD, { timeout: 10_000 });
 
-  // Wait for DB transaction to fully commit
-  await page.waitForTimeout(1000);
+  // Wait for DB transaction to fully commit and rate limits to reset
+  await page.waitForTimeout(3000);
 
-  // Logout and login to get fresh JWT with org claims
-  // This is more reliable than relying on session refresh
-  await logout(ctx);
-  await login(ctx, ctx.owner.email, ctx.owner.password);
+  // Reload page to trigger middleware session refresh
+  await page.reload();
+  await page.waitForLoadState("load");
+
+  // Navigate to projects page where we can verify the button appears
+  // This triggers another middleware call which refreshes session
+  await page.goto(`${baseUrl}/dashboard/projects`);
+  await page.waitForLoadState("load");
+
+  // Wait for the "Create project" button to confirm RBAC is working
+  // If this times out, JWT claims weren't properly refreshed
+  const createBtn = page.getByRole("button", { name: RE_CREATE_PROJECT });
+  await expect(createBtn).toBeVisible({ timeout: 10_000 });
 
   return name.toLowerCase().replace(/\s+/g, "-");
 }

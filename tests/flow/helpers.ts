@@ -29,7 +29,7 @@ const RE_INVITE_MEMBER = /invite/i;
 const RE_EMAIL = /email/i;
 const RE_SEND_INVITE = /send invite/i;
 const RE_INVITATION_SENT = /invitation sent/i;
-const RE_CREATE_PROJECT = /^(new|create project)$/i;
+const RE_CREATE_PROJECT = /new|create project/i;
 const RE_NAME = /name/i;
 
 // ===========================================

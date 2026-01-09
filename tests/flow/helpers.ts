@@ -9,8 +9,8 @@ import { expect } from "@playwright/test";
 import {
   type FieldName as AuthFieldName,
   type Operation as AuthOperation,
-  authUIConfig,
-} from "@/actions/auth/config";
+  authDomain,
+} from "@/domains/auth";
 import { type OrgRole, ROLE_PERMISSIONS } from "@/lib/rbac/permissions";
 import { createAdminClient } from "../utils/supabase-admin";
 import type { FlowContext, InviteRole } from "./context";
@@ -22,6 +22,7 @@ import type { FlowContext, InviteRole } from "./context";
 const RE_DASHBOARD = /\/dashboard/;
 const RE_DASHBOARD_OR_AUTH = /\/(dashboard|auth)/;
 const RE_AUTH = /\/auth/;
+const RE_CALLBACK_REDIRECT = /\/dashboard/;
 const RE_LOG_OUT = /log out/i;
 const RE_ORG_NAME = /organization name/i;
 const RE_CREATE = /create/i;
@@ -48,7 +49,7 @@ export async function fillAuthForm(
   const { page, baseUrl } = ctx;
   await page.goto(`${baseUrl}/auth?op=${operation}`);
 
-  const config = authUIConfig[operation];
+  const config = authDomain.operations[operation];
   for (const field of config.fields) {
     const value = data[field];
     if (value !== undefined) {
@@ -275,7 +276,8 @@ export async function createOrg(
 // ===========================================
 
 /**
- * Invite member. Test ID convention for invite form.
+ * Invite member via UI.
+ * Tests the full invitation flow including email sending.
  * Returns the invitation token for acceptance.
  */
 export async function invite(
@@ -302,9 +304,11 @@ export async function invite(
 
   // Submit
   await page.getByRole("button", { name: RE_SEND_INVITE }).click();
+
+  // Wait for success - could be email shown in list or success toast
   await expect(
     page.getByText(email).or(page.getByText(RE_INVITATION_SENT))
-  ).toBeVisible({ timeout: 5000 });
+  ).toBeVisible({ timeout: 10_000 });
 
   // Fetch the token from DB (invite creates it server-side)
   const admin = createAdminClient();
@@ -321,88 +325,112 @@ export async function invite(
     );
   }
 
+  console.log("[invite] Created invitation via UI:", email, "role:", role);
+
   return invitation.token;
 }
 
 /**
- * Accept invitation via admin client.
- * Uses service role to directly create membership, mimicking RPC behavior.
- * Must be called after user has signed up with the invited email.
+ * Accept invitation via the REAL auth callback flow.
+ * Tests the actual user experience: navigates to /auth/callback with token,
+ * which calls /api/accept-invitation to create the membership.
+ *
+ * This is more comprehensive than bypassing via admin client because it tests:
+ * - /auth/callback page handling of invite tokens
+ * - /api/accept-invitation endpoint
+ * - Session refresh and JWT claims update
  */
 export async function acceptInvitation(
   ctx: FlowContext,
   email: string,
   token: string
 ): Promise<void> {
+  const { page, baseUrl } = ctx;
   const admin = createAdminClient();
 
-  // Get the invitation
+  // Verify invitation exists before attempting to accept
   const { data: invitation, error: invError } = await admin
     .from("organization_invitations")
-    .select("id, organization_id, role, email")
+    .select("id, organization_id, role, email, status")
     .eq("token", token)
-    .eq("status", "pending")
     .single();
 
   if (invError || !invitation) {
     throw new Error(`Invitation not found: ${invError?.message}`);
   }
 
+  if (invitation.status !== "pending") {
+    throw new Error(`Invitation already ${invitation.status}`);
+  }
+
   console.log(
-    `[acceptInvitation] Invitation found - email: ${invitation.email}, role: ${invitation.role}`
+    "[acceptInvitation] Found invitation - email:",
+    invitation.email,
+    "role:",
+    invitation.role
   );
 
-  // Get the user by email
+  // Navigate to callback with invite token - this tests the REAL flow
+  // The callback page will detect existing session and call /api/accept-invitation
+  console.log("[acceptInvitation] Navigating to callback with token...");
+  await page.goto(`${baseUrl}/auth/callback?type=invite&token=${token}`);
+
+  // Wait for callback to process and redirect to dashboard
+  // The callback shows success message then redirects after 1 second
+  await expect(page).toHaveURL(RE_CALLBACK_REDIRECT, { timeout: 15_000 });
+  console.log("[acceptInvitation] Redirected to dashboard");
+
+  // Verify membership was created via the real API flow
   const { data: userData } = await admin.auth.admin.listUsers();
   const user = userData?.users.find(
     (u) => u.email?.toLowerCase() === email.toLowerCase()
   );
 
   if (!user) {
-    throw new Error(`User not found for email: ${email}`);
+    throw new Error(`User not found: ${email}`);
   }
 
-  // Create membership
-  console.log(
-    `[acceptInvitation] Creating membership with role: ${invitation.role}`
-  );
+  // Check that membership exists with correct role
   const { data: membership, error: memberError } = await admin
     .from("organization_members")
-    .insert({
-      organization_id: invitation.organization_id,
-      user_id: user.id,
-      role: invitation.role,
-    })
     .select("id, role")
+    .eq("organization_id", invitation.organization_id)
+    .eq("user_id", user.id)
     .single();
 
-  if (memberError) {
-    throw new Error(`Failed to create membership: ${memberError.message}`);
+  if (memberError || !membership) {
+    throw new Error(
+      `Membership not created by API: ${memberError?.message || "not found"}`
+    );
   }
+
+  if (membership.role !== invitation.role) {
+    throw new Error(
+      `Role mismatch: expected ${invitation.role}, got ${membership.role}`
+    );
+  }
+
   console.log(
-    `[acceptInvitation] Membership created with role: ${membership?.role}`
+    `[acceptInvitation] Verified membership with role: ${membership.role}`
   );
 
-  // Update invitation status
-  await admin
+  // Verify invitation was marked as accepted
+  const { data: updatedInv } = await admin
     .from("organization_invitations")
-    .update({ status: "accepted", accepted_at: new Date().toISOString() })
-    .eq("id", invitation.id);
+    .select("status")
+    .eq("id", invitation.id)
+    .single();
 
-  // Set user's current org preference so JWT claims include it
-  await admin.from("user_preferences").upsert({
-    user_id: user.id,
-    current_organization_id: invitation.organization_id,
-  });
+  if (updatedInv?.status !== "accepted") {
+    throw new Error(
+      `Invitation not marked accepted: ${updatedInv?.status || "unknown"}`
+    );
+  }
 
-  // Navigate to a page that will trigger session refresh
-  // The dashboard layout fetches user data which refreshes the session
-  await ctx.page.goto(`${ctx.baseUrl}/dashboard`);
-  await ctx.page.waitForLoadState("load");
-
-  // Force a hard refresh to ensure cookies are updated
-  await ctx.page.reload();
-  await ctx.page.waitForLoadState("load");
+  // Force reload to ensure session is fresh with new JWT claims
+  await page.reload();
+  await page.waitForLoadState("load");
+  console.log("[acceptInvitation] Session refreshed");
 }
 
 // ===========================================

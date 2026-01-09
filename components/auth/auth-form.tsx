@@ -1,26 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { processAuth } from "@/actions/auth";
-import {
-  authUIConfig,
-  fieldConfigs,
-  type Operation,
-} from "@/actions/auth/config";
-import { AuthSchema } from "@/actions/auth/schema";
-import { ConfigDrivenForm } from "@/components/ui/config-driven-form";
-import { getZodDefaults } from "@/lib/safe-action";
+import { DomainForm } from "@/components/views";
+import { authDomain, authLinks, type Operation } from "@/domains/auth";
 import { OAuthButtons } from "./oauth-buttons";
 
-const initialState = getZodDefaults(AuthSchema);
-
 export function AuthForm({ operation }: { operation: Operation }) {
-  const { fields, links, ...uiConfig } = authUIConfig[operation];
+  const links = authLinks[operation];
 
   return (
-    <ConfigDrivenForm
-      action={processAuth}
-      fieldConfigs={fieldConfigs}
+    <DomainForm
+      domain={authDomain}
       footer={
         <>
           <OAuthButtons />
@@ -37,11 +27,8 @@ export function AuthForm({ operation }: { operation: Operation }) {
           ))}
         </>
       }
-      getFieldTestId={(field) => `auth-field-${field}`}
-      hiddenFields={{ operation }}
-      initialState={initialState}
-      submitTestId={`auth-submit-${operation}`}
-      uiConfig={{ ...uiConfig, fields }}
+      operation={operation}
+      testIdPrefix="auth"
     />
   );
 }

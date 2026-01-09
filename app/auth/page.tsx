@@ -1,5 +1,5 @@
-import { type Operation, operations } from "@/actions/auth/config";
 import { AuthForm } from "@/components/auth/auth-form";
+import { type Operation, operations } from "@/domains/auth";
 
 interface Props {
   searchParams: Promise<{ op?: string; error?: string }>;

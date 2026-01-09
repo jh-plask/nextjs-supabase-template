@@ -4,7 +4,7 @@
  * Authentication operations test data with type-safe field references.
  */
 
-import { authUIConfig, type Operation } from "@/actions/auth/config";
+import { authDomain, type Operation } from "@/domains/auth";
 import type { DbEffect, OperationTestPlan } from "@/lib/test-types";
 
 // Test user credentials
@@ -68,5 +68,7 @@ export const authTestPlan: Record<
 };
 
 // Type safety: ensure plan keys match config keys
-const _typeCheck: Operation[] = Object.keys(authUIConfig) as Operation[];
+const _typeCheck: Operation[] = Object.keys(
+  authDomain.operations
+) as Operation[];
 void _typeCheck;

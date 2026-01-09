@@ -5,10 +5,10 @@
  */
 
 import type { Page } from "@playwright/test";
-import type { AuthInput } from "@/actions/auth/schema";
 import type { InvitationInput } from "@/actions/invitations/schema";
 import type { OrgInput } from "@/actions/org/schema";
 import type { ProjectInput } from "@/actions/projects/schema";
+import type { AuthInput } from "@/domains/auth/schema";
 
 // ===========================================
 // Runtime Types (derived from action schemas)
@@ -66,7 +66,8 @@ export interface FlowContext {
 export function generateEmail(prefix: string): string {
   const ts = Date.now();
   const rand = Math.random().toString(36).substring(2, 6);
-  return `${prefix}-${ts}-${rand}@playwright.local`;
+  // Use Gmail + addressing - all emails delivered to base address
+  return `ont323+${prefix}-${ts}-${rand}@gmail.com`;
 }
 
 export function generatePassword(): string {

@@ -1,6 +1,5 @@
 "use client";
 
-import { logoutAction } from "@/actions/auth";
 import {
   ChevronsUpDownIcon,
   Icon,
@@ -23,6 +22,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { logoutAction } from "@/domains/auth";
 
 interface NavUserProps {
   user: { email: string; avatar_url?: string };

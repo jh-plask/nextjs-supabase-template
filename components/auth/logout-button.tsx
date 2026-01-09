@@ -1,17 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import { processAuth } from "@/actions/auth";
-import { authUIConfig } from "@/actions/auth/config";
-import { AuthSchema } from "@/actions/auth/schema";
 import { Button } from "@/components/ui/button";
-import { getZodDefaults } from "@/lib/safe-action";
+import { authDomain } from "@/domains/auth";
 
-const initialState = getZodDefaults(AuthSchema);
-const { submit } = authUIConfig.logout;
+const initialState = authDomain.getInitialState();
+const { submit } = authDomain.operations.logout;
 
 export function LogoutButton() {
-  const [, action, isPending] = useActionState(processAuth, initialState);
+  const [, action, isPending] = useActionState(authDomain.action, initialState);
 
   return (
     <form action={action}>

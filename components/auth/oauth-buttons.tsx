@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { type OAuthProvider, oauthProviders } from "@/actions/auth/config";
 import { Button } from "@/components/ui/button";
+import { type OAuthProvider, oauthProviders } from "@/domains/auth/schema";
 import { createClient } from "@/lib/supabase/client";
 
 // --- OAuth Provider UI Config ---

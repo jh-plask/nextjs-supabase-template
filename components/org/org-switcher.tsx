@@ -9,8 +9,6 @@ import {
   useState,
   useTransition,
 } from "react";
-import { processOrg } from "@/actions/org";
-import { OrgSchema } from "@/actions/org/schema";
 import {
   AddIcon,
   ChevronsUpDownIcon,
@@ -35,8 +33,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
+import { orgDomain } from "@/domains/org";
 import { useOrgContext } from "@/lib/rbac";
-import { getZodDefaults } from "@/lib/safe-action";
 import { Skeleton } from "../ui/skeleton";
 
 interface Organization {
@@ -49,13 +47,14 @@ interface OrgSwitcherProps {
   organizations: Organization[];
 }
 
-const initialState = getZodDefaults(OrgSchema);
-
 export function OrgSwitcher({ organizations }: OrgSwitcherProps) {
   const router = useRouter();
   const { isMobile } = useSidebar();
   const { orgId, orgRole, refreshClaims } = useOrgContext();
-  const [state, action] = useActionState(processOrg, initialState);
+  const [state, action] = useActionState(
+    orgDomain.action,
+    orgDomain.getInitialState()
+  );
   const [isPending, startTransition] = useTransition();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

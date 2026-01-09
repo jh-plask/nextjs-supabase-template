@@ -3,25 +3,21 @@
 import { redirect } from "next/navigation";
 import { createSafeAction } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/server";
-import { getHandler } from "./logic";
+import { handlers } from "./logic";
 import { AuthSchema } from "./schema";
 
-// --- Server Action ---
 export const processAuth = createSafeAction(AuthSchema, async (data) => {
-  const handler = getHandler(data.operation);
-  const result = await handler(data);
+  // Shared context setup - auth operations don't require user
+  const supabase = await createClient();
 
-  if (data.operation === "login") {
-    redirect("/dashboard");
-  }
-  if (data.operation === "logout") {
-    redirect("/auth?op=login");
-  }
+  const result = await handlers[data.operation](data, supabase);
+
+  if (data.operation === "login") redirect("/dashboard");
+  if (data.operation === "logout") redirect("/auth?op=login");
 
   return result;
 });
 
-// --- Simple logout action (for direct form usage) ---
 export async function logoutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();

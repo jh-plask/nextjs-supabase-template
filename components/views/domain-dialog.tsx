@@ -9,10 +9,9 @@ export interface DomainDialogProps<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData,
 > {
   /** The domain containing action, schema, fields, and operations */
-  domain: Domain<TFieldName, TOperation, TSchema, TData>;
+  domain: Domain<TFieldName, TOperation, TSchema>;
   /** The operation to perform (determines fields, title, submit button) */
   operation: TOperation;
   /** Dialog open state */
@@ -42,7 +41,6 @@ export function DomainDialog<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData,
 >({
   domain,
   operation,
@@ -56,7 +54,7 @@ export function DomainDialog<
   testIdPrefix,
   onSuccess,
   refreshOnSuccess = true,
-}: DomainDialogProps<TFieldName, TOperation, TSchema, TData>) {
+}: DomainDialogProps<TFieldName, TOperation, TSchema>) {
   const opConfig = domain.operations[operation];
   const formConfig = domain.getFormConfig(operation);
 
@@ -70,7 +68,7 @@ export function DomainDialog<
     <ConfigDrivenDialog
       action={domain.action}
       description={description ?? opConfig.description}
-      fieldConfigs={domain.fields}
+      fields={domain.fields}
       hiddenFields={allHiddenFields}
       initialValues={initialValues}
       onOpenChange={onOpenChange}

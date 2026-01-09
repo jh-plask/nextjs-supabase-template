@@ -2,15 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { processOrg } from "@/actions/org";
-import { orgFieldConfigs, orgFormConfigs } from "@/actions/org/config";
-import { OrgSchema } from "@/actions/org/schema";
 import { ConfigDrivenForm } from "@/components/ui/config-driven-form";
+import { orgDomain } from "@/domains/org";
 import { useOrgContext } from "@/lib/rbac";
 import type { ActionState } from "@/lib/safe-action";
-import { getZodDefaults } from "@/lib/safe-action";
-
-const initialState = getZodDefaults(OrgSchema);
 
 export default function NewOrgPage() {
   const router = useRouter();
@@ -31,13 +26,13 @@ export default function NewOrgPage() {
 
   return (
     <ConfigDrivenForm
-      action={processOrg}
+      action={orgDomain.action}
       className="mx-auto max-w-md"
-      fieldConfigs={orgFieldConfigs}
+      fields={orgDomain.fields}
       hiddenFields={{ operation: "create" }}
-      initialState={initialState}
+      initialState={orgDomain.getInitialState()}
       onStateChange={handleStateChange}
-      uiConfig={orgFormConfigs.create}
+      uiConfig={orgDomain.getFormConfig("create")}
     />
   );
 }

@@ -1,14 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import type { AuthInput } from "../schema";
+import type { Handler } from "../schema";
 
-export async function loginHandler(data: AuthInput) {
-  const supabase = await createClient();
+export const login: Handler = async ({ email, password }, supabase) => {
   const { error } = await supabase.auth.signInWithPassword({
-    email: data.email!,
-    password: data.password!,
+    email: email!,
+    password: password!,
   });
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
   return { success: true };
-}
+};

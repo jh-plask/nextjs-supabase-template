@@ -1,12 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { processProject } from "@/actions/projects";
-import {
-  projectFieldConfigs,
-  projectFormConfigs,
-} from "@/actions/projects/config";
-import { ProjectSchema } from "@/actions/projects/schema";
 import {
   AddIcon,
   DeleteIcon,
@@ -24,6 +18,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { processProject, projectDomain } from "@/domains/projects";
+import { ProjectSchema } from "@/domains/projects/schema";
 import { RequirePermission } from "@/lib/rbac";
 import { SetPageActions } from "@/lib/sidebar";
 
@@ -128,22 +124,22 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
       {/* Create Dialog */}
       <ConfigDrivenDialog
         action={processProject}
-        description={projectFormConfigs.create.description}
-        fieldConfigs={projectFieldConfigs}
+        description={projectDomain.getFormConfig("create").description}
+        fields={projectDomain.fields}
         hiddenFields={{ operation: "create" }}
         onOpenChange={setCreateOpen}
         open={createOpen}
         schema={ProjectSchema}
         testIdPrefix="project"
-        title={projectFormConfigs.create.label}
-        uiConfig={projectFormConfigs.create}
+        title={projectDomain.getFormConfig("create").label}
+        uiConfig={projectDomain.getFormConfig("create")}
       />
 
       {/* Edit Dialog */}
       <ConfigDrivenDialog
         action={processProject}
-        description={projectFormConfigs.update.description}
-        fieldConfigs={projectFieldConfigs}
+        description={projectDomain.getFormConfig("update").description}
+        fields={projectDomain.fields}
         hiddenFields={{
           operation: "update",
           projectId: editProject?.id ?? "",
@@ -157,8 +153,8 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
         open={!!editProject}
         schema={ProjectSchema}
         testIdPrefix="project"
-        title={projectFormConfigs.update.label}
-        uiConfig={projectFormConfigs.update}
+        title={projectDomain.getFormConfig("update").label}
+        uiConfig={projectDomain.getFormConfig("update")}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -170,7 +166,7 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
             This action cannot be undone.
           </>
         }
-        fieldConfigs={projectFieldConfigs}
+        fields={projectDomain.fields}
         hiddenFields={{
           operation: "delete",
           projectId: deleteProject?.id ?? "",
@@ -181,8 +177,8 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
         schema={ProjectSchema}
         submitVariant="destructive"
         testIdPrefix="project"
-        title={projectFormConfigs.delete.label}
-        uiConfig={projectFormConfigs.delete}
+        title={projectDomain.getFormConfig("delete").label}
+        uiConfig={projectDomain.getFormConfig("delete")}
       />
     </div>
   );

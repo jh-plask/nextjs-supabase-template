@@ -26,16 +26,15 @@ export interface Domain<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData = unknown,
 > {
   /** Domain identifier (e.g., "auth", "org", "project") */
   name: string;
 
-  /** Server action bound to this domain */
+  /** Server action bound to this domain - uses unknown for prevState since it's not used */
   action: (
-    prevState: ActionState<TData>,
+    prevState: ActionState<unknown>,
     formData: FormData
-  ) => Promise<ActionState<TData>>;
+  ) => Promise<ActionState<unknown>>;
 
   /** Zod schema for validation */
   schema: TSchema;
@@ -50,7 +49,7 @@ export interface Domain<
   getFormConfig: (operation: TOperation) => FormUIConfig<TFieldName>;
 
   /** Get initial ActionState from schema defaults */
-  getInitialState: () => ActionState<TData>;
+  getInitialState: () => ActionState<unknown>;
 }
 
 // --- Domain Creation Input ---
@@ -58,10 +57,9 @@ interface CreateDomainInput<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData = unknown,
 > {
   name: string;
-  action: Domain<TFieldName, TOperation, TSchema, TData>["action"];
+  action: Domain<TFieldName, TOperation, TSchema>["action"];
   schema: TSchema;
   fields: Record<TFieldName, FieldConfig>;
   operations: Record<TOperation, OperationConfig<TFieldName>>;
@@ -72,10 +70,9 @@ export function createDomain<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData = unknown,
 >(
-  config: CreateDomainInput<TFieldName, TOperation, TSchema, TData>
-): Domain<TFieldName, TOperation, TSchema, TData> {
+  config: CreateDomainInput<TFieldName, TOperation, TSchema>
+): Domain<TFieldName, TOperation, TSchema> {
   return {
     ...config,
 
@@ -89,7 +86,7 @@ export function createDomain<
       };
     },
 
-    getInitialState(): ActionState<TData> {
+    getInitialState(): ActionState<unknown> {
       const result = config.schema.safeParse({});
       return {
         status: "idle",
@@ -107,12 +104,8 @@ export function createDomain<
 
 /** Extract field names from a Domain */
 export type DomainFieldName<D> =
-  D extends Domain<infer F, string, z.ZodType, unknown> ? F : never;
+  D extends Domain<infer F, string, z.ZodType> ? F : never;
 
 /** Extract operation names from a Domain */
 export type DomainOperation<D> =
-  D extends Domain<string, infer O, z.ZodType, unknown> ? O : never;
-
-/** Extract data type from a Domain */
-export type DomainData<D> =
-  D extends Domain<string, string, z.ZodType, infer T> ? T : never;
+  D extends Domain<string, infer O, z.ZodType> ? O : never;

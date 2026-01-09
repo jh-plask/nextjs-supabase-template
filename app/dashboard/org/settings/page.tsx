@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { processOrg } from "@/actions/org";
-import { OrgSchema } from "@/actions/org/schema";
 import { Icon, SettingsIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +22,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, FormSkeleton } from "@/components/ui/skeleton";
+import { orgDomain } from "@/domains/org";
 import { RequirePermission, useOrgContext } from "@/lib/rbac";
-import { getZodDefaults } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/client";
 
 interface Organization {
@@ -35,17 +33,18 @@ interface Organization {
   logo_url: string | null;
 }
 
-const initialState = getZodDefaults(OrgSchema);
-
 function OrgSettingsForm() {
   const router = useRouter();
   const { orgId, refreshClaims } = useOrgContext();
   const [org, setOrg] = useState<Organization | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [state, action, isPending] = useActionState(processOrg, initialState);
+  const [state, action, isPending] = useActionState(
+    orgDomain.action,
+    orgDomain.getInitialState()
+  );
   const [deleteState, deleteAction, isDeleting] = useActionState(
-    processOrg,
-    initialState
+    orgDomain.action,
+    orgDomain.getInitialState()
   );
 
   useEffect(() => {

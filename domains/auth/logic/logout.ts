@@ -1,10 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
+import type { Handler } from "../schema";
 
-export async function logoutHandler() {
-  const supabase = await createClient();
+export const logout: Handler = async (_data, supabase) => {
   const { error } = await supabase.auth.signOut();
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
   return { success: true };
-}
+};

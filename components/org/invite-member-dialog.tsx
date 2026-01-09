@@ -1,12 +1,8 @@
 "use client";
 
-import { processInvitation } from "@/actions/invitations";
-import {
-  invitationFieldConfigs,
-  invitationFormConfigs,
-} from "@/actions/invitations/form-config";
-import { InvitationSchema } from "@/actions/invitations/schema";
 import { ConfigDrivenDialog } from "@/components/ui/config-driven-dialog";
+import { invitationDomain, processInvitation } from "@/domains/invitations";
+import { InvitationSchema } from "@/domains/invitations/schema";
 
 interface InviteMemberDialogProps {
   open: boolean;
@@ -22,16 +18,16 @@ export function InviteMemberDialog({
   return (
     <ConfigDrivenDialog
       action={processInvitation}
-      description="Send an invitation to add a new member to your organization."
-      fieldConfigs={invitationFieldConfigs}
+      description={invitationDomain.operations.create.description}
+      fields={invitationDomain.fields}
       hiddenFields={{ operation: "create" }}
       onOpenChange={onOpenChange}
       onSuccess={onSuccess}
       open={open}
       schema={InvitationSchema}
       testIdPrefix="invite"
-      title="Invite Team Member"
-      uiConfig={invitationFormConfigs.create}
+      title={invitationDomain.operations.create.label}
+      uiConfig={invitationDomain.getFormConfig("create")}
     />
   );
 }

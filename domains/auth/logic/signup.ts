@@ -1,17 +1,13 @@
 import { headers } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
-import type { AuthInput } from "../schema";
+import type { Handler } from "../schema";
 
-export async function signupHandler(data: AuthInput) {
-  const supabase = await createClient();
+export const signup: Handler = async ({ email, password }, supabase) => {
   const origin = (await headers()).get("origin");
   const { error } = await supabase.auth.signUp({
-    email: data.email!,
-    password: data.password!,
+    email: email!,
+    password: password!,
     options: { emailRedirectTo: `${origin}/auth/callback` },
   });
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
   return { message: "Check your email to confirm your account" };
-}
+};

@@ -1,16 +1,8 @@
 "use client";
 
-import { processInvitation } from "@/actions/invitations";
-import {
-  invitationFieldConfigs,
-  invitationFormConfigs,
-} from "@/actions/invitations/form-config";
-import { InvitationSchema } from "@/actions/invitations/schema";
 import { ConfigDrivenForm } from "@/components/ui/config-driven-form";
+import { invitationDomain } from "@/domains/invitations";
 import type { ActionState } from "@/lib/safe-action";
-import { getZodDefaults } from "@/lib/safe-action";
-
-const initialState = getZodDefaults(InvitationSchema);
 
 interface InviteFormProps {
   onSuccess?: () => void;
@@ -25,12 +17,12 @@ export function InviteForm({ onSuccess }: InviteFormProps) {
 
   return (
     <ConfigDrivenForm
-      action={processInvitation}
-      fieldConfigs={invitationFieldConfigs}
+      action={invitationDomain.action}
+      fields={invitationDomain.fields}
       hiddenFields={{ operation: "create" }}
-      initialState={initialState}
+      initialState={invitationDomain.getInitialState()}
       onStateChange={handleStateChange}
-      uiConfig={invitationFormConfigs.create}
+      uiConfig={invitationDomain.getFormConfig("create")}
     />
   );
 }

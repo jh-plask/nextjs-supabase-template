@@ -14,10 +14,9 @@ export interface DomainFormProps<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData,
 > {
   /** The domain containing action, schema, fields, and operations */
-  domain: Domain<TFieldName, TOperation, TSchema, TData>;
+  domain: Domain<TFieldName, TOperation, TSchema>;
   /** The operation to perform (determines fields and submit button) */
   operation: TOperation;
   /** Additional hidden fields (e.g., entity IDs) */
@@ -25,7 +24,7 @@ export interface DomainFormProps<
   /** Initial values for form fields (for edit mode) */
   initialValues?: Partial<Record<TFieldName, string>>;
   /** Callback when form submission succeeds */
-  onSuccess?: (data: TData) => void;
+  onSuccess?: (data: unknown) => void;
   /** Callback when form submission fails */
   onError?: (message: string) => void;
   /** Additional content to render after the form (e.g., OAuth buttons) */
@@ -43,7 +42,6 @@ export function DomainForm<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData,
 >({
   domain,
   operation,
@@ -55,7 +53,7 @@ export function DomainForm<
   className,
   testIdPrefix,
   submitVariant,
-}: DomainFormProps<TFieldName, TOperation, TSchema, TData>) {
+}: DomainFormProps<TFieldName, TOperation, TSchema>) {
   const formConfig = domain.getFormConfig(operation);
   const initialState = domain.getInitialState();
 
@@ -67,7 +65,7 @@ export function DomainForm<
 
   // Handle state changes
   const handleStateChange = useCallback(
-    (state: ActionState<TData>) => {
+    (state: ActionState<unknown>) => {
       if (state.status === "success" && state.data) {
         onSuccess?.(state.data);
       } else if (state.status === "error") {
@@ -88,7 +86,7 @@ export function DomainForm<
     <ConfigDrivenForm
       action={domain.action}
       className={className}
-      fieldConfigs={domain.fields}
+      fields={domain.fields}
       footer={footer}
       getFieldTestId={getFieldTestId}
       hiddenFields={allHiddenFields}

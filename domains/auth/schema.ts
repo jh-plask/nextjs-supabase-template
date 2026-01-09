@@ -1,4 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import type { Database } from "@/database.types";
 
 // --- Operations ---
 export const operations = ["login", "signup", "magic-link", "logout"] as const;
@@ -8,51 +10,40 @@ export type Operation = (typeof operations)[number];
 export const fieldNames = ["email", "password", "confirmPassword"] as const;
 export type FieldName = (typeof fieldNames)[number];
 
-// --- Validation Rules ---
-const requiredFields: Record<Operation, FieldName[]> = {
-  login: ["email", "password"],
-  signup: ["email", "password", "confirmPassword"],
-  "magic-link": ["email"],
-  logout: [],
-};
-
 // --- Schema ---
 export const AuthSchema = z
   .object({
-    operation: z.enum(operations),
-    email: z.string().optional().or(z.literal("")),
-    password: z.string().optional().or(z.literal("")),
-    confirmPassword: z.string().optional().or(z.literal("")),
+    operation: z.enum(operations).default("login"),
+    email: z.string().email("Invalid email address").or(z.literal("")),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .or(z.literal("")),
+    confirmPassword: z.string().or(z.literal("")),
   })
-  .superRefine((data, ctx) => {
-    const required = requiredFields[data.operation];
-    const addError = (path: string, message: string) =>
-      ctx.addIssue({ code: "custom", message, path: [path] });
-
-    if (required.includes("email")) {
-      if (!data.email) {
-        addError("email", "Email is required");
-      } else if (!data.email.includes("@")) {
-        addError("email", "Invalid email address");
-      }
-    }
-    if (required.includes("password")) {
-      if (!data.password) {
-        addError("password", "Password is required");
-      } else if (data.password.length < 8) {
-        addError("password", "Password must be at least 8 characters");
-      }
-    }
-    if (
-      required.includes("confirmPassword") &&
-      data.password !== data.confirmPassword
-    ) {
-      addError("confirmPassword", "Passwords do not match");
-    }
-  });
+  .refine(
+    ({ operation, email }) => operation === "logout" || email.length > 0,
+    { message: "Email is required", path: ["email"] }
+  )
+  .refine(
+    ({ operation, password }) =>
+      !["login", "signup"].includes(operation) || password.length > 0,
+    { message: "Password is required", path: ["password"] }
+  )
+  .refine(
+    ({ operation, password, confirmPassword }) =>
+      operation !== "signup" || password === confirmPassword,
+    { message: "Passwords do not match", path: ["confirmPassword"] }
+  );
 
 export type AuthInput = z.infer<typeof AuthSchema>;
 
 // --- OAuth Providers ---
 export const oauthProviders = ["google"] as const;
 export type OAuthProvider = (typeof oauthProviders)[number];
+
+// --- Domain Context (auth doesn't require user) ---
+export type Context = SupabaseClient<Database>;
+
+// --- Handler Type ---
+export type Handler = (data: AuthInput, ctx: Context) => Promise<unknown>;

@@ -4,7 +4,6 @@
 export type {
   ColumnConfig,
   Domain,
-  DomainData,
   DomainFieldName,
   DomainOperation,
   OperationConfig,

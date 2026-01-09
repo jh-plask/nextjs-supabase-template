@@ -25,10 +25,10 @@ export interface DomainTableProps<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData extends Record<string, unknown>,
+  TData extends Record<string, unknown> = Record<string, unknown>,
 > {
   /** The domain containing column configuration */
-  domain: Domain<TFieldName, TOperation, TSchema, TData>;
+  domain: Domain<TFieldName, TOperation, TSchema>;
   /** The operation that defines which columns to display */
   operation: TOperation;
   /** Data rows to display */
@@ -80,7 +80,7 @@ export function DomainTable<
   TFieldName extends string,
   TOperation extends string,
   TSchema extends z.ZodType,
-  TData extends Record<string, unknown>,
+  TData extends Record<string, unknown> = Record<string, unknown>,
 >({
   domain,
   operation,

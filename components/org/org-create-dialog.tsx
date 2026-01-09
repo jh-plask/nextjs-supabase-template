@@ -1,10 +1,9 @@
 "use client";
 
 import { useCallback } from "react";
-import { processOrg } from "@/actions/org";
-import { orgFieldConfigs, orgFormConfigs } from "@/actions/org/config";
-import { OrgSchema } from "@/actions/org/schema";
 import { ConfigDrivenDialog } from "@/components/ui/config-driven-dialog";
+import { orgDomain, processOrg } from "@/domains/org";
+import { OrgSchema } from "@/domains/org/schema";
 import { useOrgContext } from "@/lib/rbac";
 
 interface OrgCreateDialogProps {
@@ -23,16 +22,16 @@ export function OrgCreateDialog({ open, onOpenChange }: OrgCreateDialogProps) {
   return (
     <ConfigDrivenDialog
       action={processOrg}
-      description="Create a new organization to collaborate with your team."
-      fieldConfigs={orgFieldConfigs}
+      description={orgDomain.operations.create.description}
+      fields={orgDomain.fields}
       hiddenFields={{ operation: "create" }}
       onOpenChange={onOpenChange}
       onSuccess={handleSuccess}
       open={open}
       schema={OrgSchema}
       testIdPrefix="org"
-      title="Create Organization"
-      uiConfig={orgFormConfigs.create}
+      title={orgDomain.operations.create.label}
+      uiConfig={orgDomain.getFormConfig("create")}
     />
   );
 }

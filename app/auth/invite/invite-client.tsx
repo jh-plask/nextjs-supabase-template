@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
-import { processInvitation } from "@/actions/invitations";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { ConfigDrivenForm } from "@/components/ui/config-driven-form";
 import { authDomain } from "@/domains/auth";
+import { invitationDomain } from "@/domains/invitations";
 import type { ActionState } from "@/lib/safe-action";
 
 interface InviteAcceptClientProps {
@@ -23,12 +23,6 @@ interface InviteAcceptClientProps {
   userEmail?: string;
 }
 
-const initialState: ActionState<unknown> = {
-  status: "idle",
-  message: "",
-  errors: {},
-};
-
 export function InviteAcceptClient({
   token,
   email,
@@ -38,8 +32,8 @@ export function InviteAcceptClient({
 }: InviteAcceptClientProps) {
   const router = useRouter();
   const [acceptState, acceptAction, isAccepting] = useActionState(
-    processInvitation,
-    initialState
+    invitationDomain.action,
+    invitationDomain.getInitialState()
   );
 
   // Handle successful acceptance
@@ -122,9 +116,9 @@ export function InviteAcceptClient({
             }
             return result;
           }}
-          fieldConfigs={authDomain.fields}
+          fields={authDomain.fields}
           hiddenFields={{ operation: "signup" }}
-          initialState={initialState}
+          initialState={authDomain.getInitialState()}
           initialValues={{ email }}
           uiConfig={authDomain.getFormConfig("signup")}
         />

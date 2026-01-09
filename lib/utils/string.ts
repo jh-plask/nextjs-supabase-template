@@ -30,3 +30,14 @@ export function toSelectOptions(values: readonly string[]) {
     label: capitalize(value),
   }));
 }
+
+/**
+ * Generates a URL-friendly slug from a string
+ * @example toSlug("My Organization") => "my-organization"
+ */
+export function toSlug(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}

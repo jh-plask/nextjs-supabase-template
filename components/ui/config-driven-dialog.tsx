@@ -43,8 +43,8 @@ export interface ConfigDrivenDialogProps<TFieldName extends string> {
   schema: z.ZodType;
   /** UI configuration from action form-config */
   uiConfig: FormUIConfig<TFieldName>;
-  /** Field configurations from action form-config */
-  fieldConfigs: Record<TFieldName, FieldConfig>;
+  /** Field configurations (label, type, placeholder) */
+  fields: Record<TFieldName, FieldConfig>;
   /** Hidden fields (e.g., operation type) */
   hiddenFields?: Record<string, string>;
   /** Initial values for form fields (for edit mode) */
@@ -71,7 +71,7 @@ export function ConfigDrivenDialog<TFieldName extends string>({
   action,
   schema,
   uiConfig,
-  fieldConfigs,
+  fields,
   hiddenFields,
   initialValues,
   submitVariant,
@@ -139,7 +139,7 @@ export function ConfigDrivenDialog<TFieldName extends string>({
         <form action={formAction} className="flex flex-col gap-4" id={formId}>
           <FieldGroup>
             <ConfigDrivenFormBody
-              fieldConfigs={fieldConfigs}
+              fields={fields}
               formId={formId}
               getFieldTestId={getFieldTestId}
               hiddenFields={hiddenFields}

@@ -1,10 +1,6 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useState } from "react";
-import { processInvitation } from "@/actions/invitations";
-import { InvitationSchema } from "@/actions/invitations/schema";
-import { processMember } from "@/actions/members";
-import { MemberSchema } from "@/actions/members/schema";
 import {
   AddIcon,
   DeleteIcon,
@@ -29,8 +25,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ListSectionSkeleton } from "@/components/ui/skeleton";
+import { invitationDomain } from "@/domains/invitations";
+import { memberDomain } from "@/domains/members";
 import { RequirePermission, useOrgContext } from "@/lib/rbac";
-import { getZodDefaults } from "@/lib/safe-action";
 import { SetPageActions } from "@/lib/sidebar";
 import { createClient } from "@/lib/supabase/client";
 
@@ -49,9 +46,6 @@ interface Invitation {
   expires_at: string;
 }
 
-const inviteInitialState = getZodDefaults(InvitationSchema);
-const memberInitialState = getZodDefaults(MemberSchema);
-
 function MembersContent() {
   const { orgId, refreshClaims } = useOrgContext();
   const [members, setMembers] = useState<Member[]>([]);
@@ -60,12 +54,12 @@ function MembersContent() {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   const [inviteState, inviteAction, isInviting] = useActionState(
-    processInvitation,
-    inviteInitialState
+    invitationDomain.action,
+    invitationDomain.getInitialState()
   );
   const [memberState, memberAction, isMemberPending] = useActionState(
-    processMember,
-    memberInitialState
+    memberDomain.action,
+    memberDomain.getInitialState()
   );
 
   const fetchData = useCallback(async () => {

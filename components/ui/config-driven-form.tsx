@@ -28,8 +28,8 @@ export interface FormBodyProps<TFieldName extends string> {
   formId: string;
   /** UI configuration (fields array) */
   uiConfig: Pick<FormUIConfig<TFieldName>, "fields">;
-  /** Field configurations (label, type, placeholder, autoComplete) */
-  fieldConfigs: Record<TFieldName, FieldConfig>;
+  /** Field configurations (label, type, placeholder) */
+  fields: Record<TFieldName, FieldConfig>;
   /** Current form state (for errors and default values) */
   state: ActionState<unknown>;
   /** Hidden fields to include in form submission */
@@ -50,8 +50,8 @@ export interface ConfigDrivenFormProps<TFieldName extends string, TData> {
   initialState: ActionState<TData>;
   /** UI configuration (label, description, fields, submit) */
   uiConfig: FormUIConfig<TFieldName>;
-  /** Field configurations (label, type, placeholder, autoComplete) */
-  fieldConfigs: Record<TFieldName, FieldConfig>;
+  /** Field configurations (label, type, placeholder) */
+  fields: Record<TFieldName, FieldConfig>;
   /** Hidden fields to include in form submission */
   hiddenFields?: Record<string, string>;
   /** Initial values for form fields (for edit mode) */
@@ -99,7 +99,7 @@ function getSuccessMessage(data: unknown): string | null {
 export function ConfigDrivenFormBody<TFieldName extends string>({
   formId,
   uiConfig,
-  fieldConfigs,
+  fields: fieldConfigs,
   state,
   hiddenFields,
   initialValues,
@@ -219,7 +219,7 @@ export function ConfigDrivenForm<TFieldName extends string, TData>({
   action,
   initialState,
   uiConfig,
-  fieldConfigs,
+  fields,
   hiddenFields,
   initialValues,
   footer,
@@ -282,7 +282,7 @@ export function ConfigDrivenForm<TFieldName extends string, TData>({
 
           {/* Form body (fields) */}
           <ConfigDrivenFormBody
-            fieldConfigs={fieldConfigs}
+            fields={fields}
             formId={formId}
             getFieldTestId={getFieldTestId}
             hiddenFields={hiddenFields}

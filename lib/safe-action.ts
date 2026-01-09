@@ -44,9 +44,9 @@ export function createSafeAction<Schema extends z.ZodType<unknown>, Data>(
   handler: (data: z.infer<Schema>) => Promise<Data>
 ) {
   return async (
-    _prevState: ActionState<Data>,
+    _prevState: ActionState<unknown>,
     formData: FormData
-  ): Promise<ActionState<Data>> => {
+  ): Promise<ActionState<unknown>> => {
     // A. Parse & Validate
     const rawData = Object.fromEntries(formData);
     const validation = schema.safeParse(rawData);
